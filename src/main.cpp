@@ -7,10 +7,18 @@
 int main(){
     Model model(2);
     Model::cstr constraint;
+
+    model.add_obj_coef(0.4);
+    model.add_obj_coef(0.5);
+    model.obj_func_print();
+    
     constraint.coef_add(0.3);
     constraint.coef_add(0.1);
-    constraint.coef_print();
+    constraint.value_add(2.7);
+    //constraint.coef_print();
     model.add_cstr(constraint);
+    //model.table[0].coef_print();
+    //std::cout << model.table[0].value << std::endl;
 
     Tableau tableau;
     int M = 10;

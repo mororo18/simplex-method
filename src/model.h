@@ -10,10 +10,14 @@ public:
 
     int var_qnt;
     class cstr;
-    typedef std::vector<cstr> Table;
-    Table table;
+    std::vector<double> obj_func;
+    std::vector<cstr> cstr_vec;
+    //Table table;
 
+    void add_obj_coef(double coef);
     void add_cstr(cstr constraint);
+    int size();
+    void obj_func_print();
 
 };
 
@@ -25,8 +29,10 @@ public:
    cstr_t type; 
    std::vector<double> coef;
    double value;
+
    void type_def(cstr_t type);
    void coef_add(double var_coef);
+   void value_add(double value_cstr);
    void coef_print();
 };
 
