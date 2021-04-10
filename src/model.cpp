@@ -4,6 +4,22 @@ Model::Model(int qnt){
     var_qnt = qnt;
 }
 
+void Model::type_def(std::string model_type){
+    /*
+        max -> 1
+        min -> -1
+    */
+
+    if(!model_type.compare("max")){
+        type = model_type;
+        type_id = -1; 
+    }else if( !model_type.compare("min")){
+        type = model_type;
+        type_id = 1;
+    }else
+        std::cout << "Invalid constraint type" << std::endl;
+}
+
 void Model::add_obj_coef(double coef){
 
     if(obj_func.size() + 1 > var_qnt){
@@ -18,12 +34,52 @@ void Model::add_cstr(Model::cstr constraint){
 
     //constraint.coef.push_back(constraint.value);
 
-    if(constraint.coef.size() > var_qnt){
+    if(constraint.coef.size() != var_qnt){
         std::cout << "Invalid constraint variables" << std::endl;
         return;
     }
         
     cstr_vec.push_back(constraint);
+}
+
+Tableau Model::tableau_generate(){
+    const int cstr_qnt = cstr_vec.size();
+
+    // insert the first line
+    tableau.push_back(obj_func);
+
+    // columns for slack variables of first line
+    for(int i = 0; i < cstr_qnt; i++)
+        tableau[0].push_back(0);
+    
+    // current solution value
+    tableau[0].push_back(0);
+
+    if(type_id == -1)
+        vec_multiply_scalar(tableau[0], -1);
+
+    for(int i = 0; i < cstr_vec.size(); i++){
+        for(int j = 0; j < cstr_qnt; j++){
+            cstr_vec[i].coef.push_back(0);
+        }
+
+        double cstr_value = cstr_vec[i].value;
+        cstr_vec[i].coef.push_back(cstr_value);
+
+        if(cstr_vec[i].type_id == 0){
+            // subtract the first line(obj_func) by the current line times BIG_M (eq_cstr)
+            vec_add_vec(tableau[0], cstr_vec[i].coef, -BIG_M);
+        }else if(cstr_vec[i].type_id == -1){
+            vec_multiply_scalar(cstr_vec[i].coef, -1);
+        }
+
+        //add the identity sub-matrix 
+        cstr_vec[i].coef[var_qnt + i] = 1;
+    
+        tableau.push_back(cstr_vec[i].coef);
+    }
+
+    return tableau;
 }
 
 void Model::obj_func_print(){
@@ -45,8 +101,15 @@ int Model::size(){
 
 void Model::cstr::type_def(cstr_t tp){
     
-    if(!type.compare("eq") || !type.compare("leq") || !type.compare("geq")){
+    if(!tp.compare("eq")){
         type = tp;
+        type_id = 0;
+    }else if(!tp.compare("leq")){
+        type = tp;
+        type_id = 1;
+    }else if(!tp.compare("geq")){
+        type = tp;
+        type_id = -1;
     }else
         std::cout << "Invalid constraint type" << std::endl;
 }

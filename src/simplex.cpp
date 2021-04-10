@@ -45,7 +45,7 @@ int pivot_line_identify(Tableau & tableau, int pivot_column){
     return line_i;
 }
 
-static void vec_multiply_scalar(std::vector<double> & vec, double scalar){
+void vec_multiply_scalar(std::vector<double> & vec, double scalar){
     for(int i = 0; i < vec.size(); i++){
         if(vec[i] <= DBL_EPSILON && vec[i] >= -DBL_EPSILON) //eq to 0
             continue;
@@ -54,7 +54,7 @@ static void vec_multiply_scalar(std::vector<double> & vec, double scalar){
     }
 }
 
-static void vec_add_vec(std::vector<double> & vec_a, const std::vector<double> & vec_b, double factor){
+void vec_add_vec(std::vector<double> & vec_a, const std::vector<double> & vec_b, double factor){
     //vec_a - vec_b
     for(int i = 0; i < vec_a.size(); i++){
         vec_a[i] += factor * vec_b[i]; 
