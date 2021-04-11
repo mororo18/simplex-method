@@ -42,6 +42,22 @@ void Model::cstr_add(Model::cstr constraint){
     cstr_vec.push_back(constraint);
 }
 
+void Model::vec_multiply_scalar(std::vector<double> & vec, double scalar){
+    for(int i = 0; i < vec.size(); i++){
+        if(vec[i] <= DBL_EPSILON && vec[i] >= -DBL_EPSILON) //eq to 0
+            continue;
+
+        vec[i] *= scalar;
+    }
+}
+
+void Model::vec_add_vec(std::vector<double> & vec_a, const std::vector<double> & vec_b, double factor){
+    //vec_a - vec_b
+    for(int i = 0; i < vec_a.size(); i++){
+        vec_a[i] += factor * vec_b[i]; 
+    }
+}
+
 void Model::tableau_generate(){
 
     if(!tableau.empty()){
@@ -88,7 +104,7 @@ void Model::tableau_generate(){
 
 }
 
-Tableau Model::tableau_get(){
+Table Model::tableau_get(){
     return tableau;
 }
 

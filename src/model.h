@@ -1,10 +1,11 @@
 #include <cstring>
+#include <cfloat>
 #include <iostream>
 #include <vector>
-#include "simplex.h"
 
 #define BIG_M 999999
 
+typedef std::vector<std::vector<double>> Table;
 
 class Model {
 
@@ -16,7 +17,7 @@ public:
     void obj_coef_add(double coef);
     void cstr_add(cstr constraint);
     void tableau_generate();
-    Tableau tableau_get();
+    Table tableau_get();
     void tableau_print();
     int size();
     void obj_func_print();
@@ -27,7 +28,9 @@ private:
     int type_id;
     std::vector<double> obj_func;
     std::vector<cstr> cstr_vec;
-    Tableau tableau;
+    Table tableau;
+    void vec_multiply_scalar(std::vector<double> & vec, double scalar);
+    void vec_add_vec(std::vector<double> & vec_a, const std::vector<double> & vec_b, double factor);
 
 
 
