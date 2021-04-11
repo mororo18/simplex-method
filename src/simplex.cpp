@@ -22,11 +22,11 @@ int pivot_column_identify(std::vector<double> obj_func){
     return min_i;
 }
 
-int pivot_line_identify(Tableau & tableau, int pivot_column){
+int pivot_row_identify(Tableau & tableau, int pivot_column){
     //std::vector<double
     double lim;
     double lim_min  = 9999999;
-    int line_i;
+    int row_i;
     bool first = true;
     int k = tableau[0].size() - 1;      //restrictions column
     for(int i = 1; i < tableau.size(); i++){
@@ -37,12 +37,12 @@ int pivot_line_identify(Tableau & tableau, int pivot_column){
         lim = tableau[i][k] / co_ij;
         if(lim < lim_min ){
             lim_min = lim;
-            line_i = i;
+            row_i = i;
         }
 
     }
 
-    return line_i;
+    return row_i;
 }
 
 void vec_multiply_scalar(std::vector<double> & vec, double scalar){
@@ -61,19 +61,19 @@ void vec_add_vec(std::vector<double> & vec_a, const std::vector<double> & vec_b,
     }
 }
 
-void pivot_column_clean(Tableau & tableau, int line, int column){
-    double d = 1.0f / tableau[line][column];
+void pivot_column_clean(Tableau & tableau, int row, int column){
+    double d = 1.0f / tableau[row][column];
     
-    // divide line by the coeficient of x_i
-    vec_multiply_scalar(tableau[line], d);
+    // divide row by the coeficient of x_i
+    vec_multiply_scalar(tableau[row], d);
 
     for(int i = 0; i < tableau.size(); i++){
         double x_coef = tableau[i][column];
         //std::cout << "line  " << i << " coef  "<< x_coef << std::endl;
-        if(x_coef == 0 || i == line) //eq to 0
+        if(x_coef == 0 || i == row) //eq to 0
             continue;
 
-        vec_add_vec(tableau[i], tableau[line], -x_coef); 
+        vec_add_vec(tableau[i], tableau[row], -x_coef); 
     }
 
 }
@@ -88,8 +88,8 @@ void simplex_solve(Tableau & tableau){
 
         if(column == -1)
             break;
-        int line = pivot_line_identify(tableau, column);
+        int row = pivot_row_identify(tableau, column);
 
-        pivot_column_clean(tableau, line, column);
+        pivot_column_clean(tableau, row, column);
     }
 }
