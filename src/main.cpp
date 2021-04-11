@@ -1,6 +1,3 @@
-#include <iostream>
-#include <vector>
-#include <cfloat>
 #include "simplex.h"
 #include "model.h"
 
