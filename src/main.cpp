@@ -2,7 +2,7 @@
 #include "model.h"
 
 /*
-    The class Model generates a tableau from the received data
+    The Model class generates a tableau from the received data
     and the simplex algorithm solves the tableau
 */  
 
