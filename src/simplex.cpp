@@ -78,21 +78,18 @@ void pivot_column_clean(Tableau & tableau, int line, int column){
 
 }
 
-void simplex_solve(Tableau tableau){
+void simplex_solve(Tableau & tableau){
     int count = 0;
     while(true){
 
-        tableau_print(tableau);
-        std::cout << std::endl;
-        //if(count++ == 3) break;
+        //tableau_print(tableau);
+        //std::cout << std::endl;
         int column = pivot_column_identify(tableau[0]);
-        //std::cout << "pivot column " << column << std::endl;
+
         if(column == -1)
             break;
         int line = pivot_line_identify(tableau, column);
-        //std::cout << "pivot line " << line << std::endl;
 
         pivot_column_clean(tableau, line, column);
-        //tableau_print(tableau);
     }
 }

@@ -4,6 +4,11 @@
 #include "simplex.h"
 #include "model.h"
 
+/*
+    The class Model generates a tableau from the received data
+    and the simplex algorithm solves the tableau
+*/  
+
 int main(){
     // qnt of variables
     Model model(2);
@@ -12,8 +17,8 @@ int main(){
     model.type_def("min");
 
     //add the coeficients of obj_func sequentially
-    model.add_obj_coef(0.4);
-    model.add_obj_coef(0.5);
+    model.obj_coef_add(0.4);
+    model.obj_coef_add(0.5);
     //model.obj_func_print();
     
     Model::cstr cstr_01;
@@ -45,12 +50,17 @@ int main(){
     cstr_03.value_add(6);
 
     // add the cstrs to the model
-    model.add_cstr(cstr_01);
-    model.add_cstr(cstr_02);
-    model.add_cstr(cstr_03);
+    model.cstr_add(cstr_01);
+    model.cstr_add(cstr_02);
+    model.cstr_add(cstr_03);
+
+    model.tableau_generate();
+    model.tableau_print();
 
     // generate the tableau
-    Tableau tableau = model.tableau_generate();
+    Tableau tableau = model.tableau_get();
+
+    simplex_solve(tableau);
     tableau_print(tableau);
     //int M = 10;
 
@@ -62,7 +72,6 @@ int main(){
     {-0.6, -0.4, 0, 0, 1, -6}};
     */
     
-    simplex_solve(tableau);
 
     return 0;
 }

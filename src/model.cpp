@@ -20,7 +20,7 @@ void Model::type_def(std::string model_type){
         std::cout << "Invalid constraint type" << std::endl;
 }
 
-void Model::add_obj_coef(double coef){
+void Model::obj_coef_add(double coef){
 
     if(obj_func.size() + 1 > var_qnt){
         std::cout << "Invalid OF size" << std::endl;
@@ -30,7 +30,7 @@ void Model::add_obj_coef(double coef){
     obj_func.push_back(coef);
 }
 
-void Model::add_cstr(Model::cstr constraint){
+void Model::cstr_add(Model::cstr constraint){
 
     //constraint.coef.push_back(constraint.value);
 
@@ -42,7 +42,12 @@ void Model::add_cstr(Model::cstr constraint){
     cstr_vec.push_back(constraint);
 }
 
-Tableau Model::tableau_generate(){
+void Model::tableau_generate(){
+
+    if(!tableau.empty()){
+        tableau.clear();
+    }
+
     const int cstr_qnt = cstr_vec.size();
 
     // insert the first line
@@ -59,27 +64,41 @@ Tableau Model::tableau_generate(){
         vec_multiply_scalar(tableau[0], -1);
 
     for(int i = 0; i < cstr_vec.size(); i++){
+        std::vector<double> cstr_cpy = cstr_vec[i].coef;
+
         for(int j = 0; j < cstr_qnt; j++){
-            cstr_vec[i].coef.push_back(0);
+            cstr_cpy.push_back(0);
         }
 
         double cstr_value = cstr_vec[i].value;
-        cstr_vec[i].coef.push_back(cstr_value);
+        cstr_cpy.push_back(cstr_value);
 
         if(cstr_vec[i].type_id == 0){
             // subtract the first line(obj_func) by the current line times BIG_M (eq_cstr)
-            vec_add_vec(tableau[0], cstr_vec[i].coef, -BIG_M);
+            vec_add_vec(tableau[0], cstr_cpy, -BIG_M);
         }else if(cstr_vec[i].type_id == -1){
-            vec_multiply_scalar(cstr_vec[i].coef, -1);
+            vec_multiply_scalar(cstr_cpy, -1);
         }
 
         //add the identity sub-matrix 
-        cstr_vec[i].coef[var_qnt + i] = 1;
+        cstr_cpy[var_qnt + i] = 1;
     
-        tableau.push_back(cstr_vec[i].coef);
+        tableau.push_back(cstr_cpy);
     }
 
+}
+
+Tableau Model::tableau_get(){
     return tableau;
+}
+
+void Model::tableau_print(){
+    for(int i = 0; i < tableau.size(); i++){
+        for(int j = 0; j < tableau[i].size(); j++){
+            std::cout << tableau[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
 }
 
 void Model::obj_func_print(){
