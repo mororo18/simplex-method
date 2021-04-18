@@ -10,13 +10,29 @@ int main(){
     // qnt of variables
     Model model(2);
 
+    model.def("min");
+
+    Model::obj_func func(2);
+
+    func.coef_add(0.4);
+    func.coef_add(0.5);
+
+    func.var_add("x_1");
+    func.var_add("x_2");
+
+    func.print();
+
+    model.func_add(func);
+
     // def the problem type
-    model.type_def("min");
+    //model.type_def("min");
+    /*
 
     //add the coeficients of obj_func sequentially
     model.obj_coef_add(0.4);
     model.obj_coef_add(0.5);
     //model.obj_func_print();
+    */
     
     Model::cstr cstr_01;
 
@@ -57,8 +73,8 @@ int main(){
     // generate the tableau
     Tableau tableau = model.tableau_get();
 
-    simplex_solve(tableau);
-    tableau_print(tableau);
+    simplex_solve(model.tableau);
+    tableau_print(model.tableau);
     //int M = 10;
 
 /*

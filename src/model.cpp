@@ -2,9 +2,11 @@
 
 Model::Model(int qnt){
     var_qnt = qnt;
+
+    main_func = nullptr;
 }
 
-void Model::type_def(std::string model_type){
+void Model::def(std::string model_type){
     /*
         max -> 1
         min -> -1
@@ -20,21 +22,24 @@ void Model::type_def(std::string model_type){
         std::cout << "Invalid constraint type" << std::endl;
 }
 
-void Model::obj_coef_add(double coef){
+void Model::func_add(Model::obj_func func){
 
-    if(obj_func.size() + 1 > var_qnt){
+    if(func.size() != var_qnt){
         std::cout << "Invalid OF size" << std::endl;
         return;
     }
 
-    obj_func.push_back(coef);
+    if(main_func != nullptr)
+        delete main_func;
+            
+    main_func = new Model::obj_func (var_qnt);
+
+    *main_func = func;
 }
 
 void Model::cstr_add(Model::cstr constraint){
 
-    //constraint.coef.push_back(constraint.value);
-
-    if(constraint.coef.size() != var_qnt){
+    if(constraint.exp_coef.size() != var_qnt){
         std::cout << "Invalid constraint variables" << std::endl;
         return;
     }
@@ -66,8 +71,13 @@ void Model::tableau_generate(){
 
     const int cstr_qnt = cstr_vec.size();
 
+    std::vector<double> vec = main_func->coef_get();
     // insert the first line
-    tableau.push_back(obj_func);
+    tableau.push_back(vec);
+
+    for(int i = 0; i < vec.size(); i++)
+        std::cout << vec[i] << " ";
+    //exit(0);
 
     // columns for slack variables of first line
     for(int i = 0; i < cstr_qnt; i++)
@@ -80,7 +90,7 @@ void Model::tableau_generate(){
         vec_multiply_scalar(tableau[0], -1);
 
     for(int i = 0; i < cstr_vec.size(); i++){
-        std::vector<double> cstr_cpy = cstr_vec[i].coef;
+        std::vector<double> cstr_cpy = cstr_vec[i].exp_coef;
 
         for(int j = 0; j < cstr_qnt; j++){
             cstr_cpy.push_back(0);
@@ -89,11 +99,11 @@ void Model::tableau_generate(){
         double cstr_value = cstr_vec[i].value;
         cstr_cpy.push_back(cstr_value);
 
-        if(cstr_vec[i].type_id == 0){
+        if(cstr_vec[i].type_id == EQ){
             // subtract the first line(obj_func) by the current line times BIG_M (eq_cstr)
             vec_add_vec(tableau[0], cstr_cpy, -BIG_M);
-        }else if(cstr_vec[i].type_id == -1){
-            vec_multiply_scalar(cstr_cpy, -1);
+        }else if(cstr_vec[i].type_id == G_EQ){
+            vec_multiply_scalar(cstr_cpy, G_EQ);
         }
 
         //add the identity sub-matrix 
@@ -117,15 +127,53 @@ void Model::tableau_print(){
     }
 }
 
-void Model::obj_func_print(){
-    for(int i = 0; i < obj_func.size(); i++)
-        std::cout << obj_func[i] << " ";
-    std::cout << std::endl;
-
+int Model::n_var_get(){
+    return var_qnt;
 }
 
 int Model::size(){
     return cstr_vec.size();
+}
+
+Model::obj_func::obj_func(int qnt){
+    var_qnt = qnt;
+}
+
+void Model::obj_func::var_add(char name[]){
+    
+    if(var_name.size() + 1 > var_qnt){
+        std::cout << "Invalid OF size" << std::endl;
+        return;
+    }
+
+    std::string var_new (name);
+
+    var_name.push_back(var_new);
+}
+
+void Model::obj_func::coef_add(double var_coef){
+
+    if(coef.size() + 1 > var_qnt){
+        std::cout << "Invalid OF size" << std::endl;
+        return;
+    }
+
+    coef.push_back(var_coef);
+}
+
+std::vector<double> Model::obj_func::coef_get(){
+    return coef;
+}
+
+int Model::obj_func::size(){
+    return var_qnt;
+}
+
+void Model::obj_func::print(){
+    for(int i = 0; i < coef.size(); i++)
+        std::cout << coef[i] << "*" << var_name[i] << " ";
+    std::cout << std::endl;
+
 }
 
 /*
@@ -150,7 +198,7 @@ void Model::cstr::type_def(cstr_t tp){
 }
 
 void Model::cstr::coef_add(double var_coef){
-    coef.push_back(var_coef);
+    exp_coef.push_back(var_coef);
 }
 
 void Model::cstr::value_add(double value_cstr){
@@ -158,7 +206,7 @@ void Model::cstr::value_add(double value_cstr){
 }
 
 void Model::cstr::coef_print(){
-    for(int i = 0; i < coef.size(); i++)
-        std::cout << coef[i] << " ";
+    for(int i = 0; i < exp_coef.size(); i++)
+        std::cout << exp_coef[i] << " ";
     std::cout << std::endl;
 }
