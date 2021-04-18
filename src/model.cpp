@@ -22,9 +22,7 @@ void Model::def(std::string model_type){
         type = model_type;
         type_id = 1;
     }else
-        std::cout << "Invalid constraint type" << std::endl;
-}
-
+        std::cout << "Invalid constraint type" << std::endl; } 
 void Model::func_add(Model::obj_func func){
 
     if(func.size() != var_qnt){
@@ -66,25 +64,49 @@ void Model::vec_add_vec(std::vector<double> & vec_a, const std::vector<double> &
     }
 }
 
+void Model::vec_print_dbl(std::vector<double> vec){
+    for(int i = 0; i < vec.size(); i++){
+        std::cout << vec[i] << " " ;//+= factor * vec_b[i]; 
+    }
+
+    std::cout << std::endl;
+}
+
 void Model::tableau_generate(){
 
     if(!tableau.empty()){
         tableau.clear();
+        I_index.clear();
     }
 
     const int cstr_qnt = cstr_vec.size();
+    int n = var_qnt;
 
-    std::vector<double> vec = main_func->coef_get();
+    // store the original coef value
+    original_coef = main_func->coef_get();
+
+    //std::vector<double> vec = main_func->coef_get();
     // insert the first row
-    tableau.push_back(vec);
+    tableau.push_back(original_coef);
 
     //for(int i = 0; i < vec.size(); i++)
         //std::cout << vec[i] << " ";
     //exit(0);
 
+    int slack_cols = 0;
+
     // columns for slack variables of first row 
-    for(int i = 0; i < cstr_qnt; i++)
-        tableau[0].push_back(0);
+    for(int i = 0; i < cstr_qnt; i++){
+        if(cstr_vec[i].type_id == G_EQ){
+            // the two cols of the artificial variables of the geq constraint
+            tableau[0].push_back(0);
+            tableau[0].push_back(0);
+            slack_cols += 2;
+        }else {
+            tableau[0].push_back(0);
+            slack_cols++;
+        }
+    }
     
     // current solution value
     tableau[0].push_back(0);
@@ -93,28 +115,113 @@ void Model::tableau_generate(){
         vec_multiply_scalar(tableau[0], MAX);
 
     for(int i = 0; i < cstr_vec.size(); i++){
-        std::vector<double> cstr_cpy = cstr_vec[i].exp_coef;
+        std::vector<double> tableau_row = cstr_vec[i].exp_coef;
 
-        for(int j = 0; j < cstr_qnt; j++){
-            cstr_cpy.push_back(0);
+        // slack vars cols
+        for(int j = 0; j < slack_cols; j++){
+            tableau_row.push_back(0);
         }
 
         double cstr_value = cstr_vec[i].value;
-        cstr_cpy.push_back(cstr_value);
+        tableau_row.push_back(cstr_value);
 
         if(cstr_vec[i].type_id == EQ){
             // subtract the first row(obj_func) by the current row times BIG_M (eq_cstr)
-            vec_add_vec(tableau[0], cstr_cpy, -BIG_M);
+            vec_add_vec(tableau[0], tableau_row, -BIG_M);
+
+            // store the original coef value of the slack var
+            original_coef.push_back(BIG_M);
         }else if(cstr_vec[i].type_id == G_EQ){
-            vec_multiply_scalar(cstr_cpy, G_EQ);
-        }
+            //vec_multiply_scalar(cstr_cpy, G_EQ);
+            tableau_row[n+i] = -1;
+            n++;
+            vec_add_vec(tableau[0], tableau_row, -BIG_M);
+
+            // store the original coef value of the slack var
+            original_coef.push_back(0);
+            original_coef.push_back(BIG_M);
+        }else
+            // store the original coef value of the slack var
+            original_coef.push_back(0);
 
         //add the identity sub-matrix 
-        cstr_cpy[var_qnt + i] = 1;
+        tableau_row[n + i] = 1;
+
+        // store the identity sub-matrix col indexes
+        I_index.push_back(n + i);
     
-        tableau.push_back(cstr_cpy);
+        tableau.push_back(tableau_row);
     }
 
+}
+
+void Model::inverse_matrix_get(){
+    inverse_matrix = std::vector<std::vector<double>> (I_index.size(), std::vector<double> (I_index.size()));
+
+    for(int i = 0; i < I_index.size(); i++){
+        int col = I_index[i];
+        for(int j = 1; j < tableau.size(); j++){
+            inverse_matrix[j-1][i] = tableau[j][col]; 
+        }
+    }
+
+    for(int i = 0; i < inverse_matrix.size(); i++){
+        for(int j = 0; j < inverse_matrix[0].size(); j++){
+            std::cout << inverse_matrix[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    vec_print_dbl(original_coef);
+}
+
+void Model::non_basic_coef_get(){
+    std::vector<double> coef (size());
+    for(int i = 0; i < tableau[0].size(); i++){
+        if(tableau[0][i] == 0){
+            for(int j = 1; j < tableau.size(); j++){
+                if(tableau[j][i] == 1){
+                    coef[j-1] = -1.0f * original_coef[i];
+                }
+            }
+        }
+    }
+
+    non_basic_coef = coef;
+    vec_print_dbl(non_basic_coef);
+}
+
+void Model::solution_primal_get(){
+    const int s_col = tableau[0].size() - 1;
+    for(int i = 0; i < var_qnt; i++){
+        for(int j = 1; j < tableau.size(); j++){
+            if(tableau[j][i] == 1)
+                solution_primal.push_back(tableau[j][s_col]);
+        }
+    }
+}
+
+void Model::solution_dual_get(){
+    inverse_matrix_get();
+    non_basic_coef_get();
+    
+    for(int i = 0; i < inverse_matrix.size(); i++){
+        double sum = 0;
+        for(int j = 0; j < inverse_matrix.size(); j++){
+            sum += non_basic_coef[j] * inverse_matrix[j][i]; 
+        }
+
+        solution_dual.push_back(sum);
+    }
+}
+
+void Model::solve(){
+    tableau_generate();
+    solver(tableau);
+    solution_primal_get();
+    solution_dual_get();
+    vec_print_dbl(solution_primal);
+    vec_print_dbl(solution_dual);
 }
 
 Table Model::tableau_get(){
@@ -138,13 +245,12 @@ int Model::size(){
     return cstr_vec.size();
 }
 
-void Model::print(){
+void Model::analyse(){
 
 }
 
-void Model::solve(){
-    tableau_generate();
-    solver(tableau);
+void Model::print(){
+
 }
 
 Model::obj_func::obj_func(int qnt){
@@ -202,6 +308,7 @@ void Model::cstr::type_def(cstr_t tp){
     }else if(!tp.compare("leq")){
         type = tp;
         type_id = 1;
+        std::cout << "aqui" << std::endl;
     }else if(!tp.compare("geq")){
         type = tp;
         type_id = -1;

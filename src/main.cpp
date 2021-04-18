@@ -16,9 +16,11 @@ int main(){
 
     func.coef_add(0.4);
     func.coef_add(0.5);
+    //func.coef_add(8);
 
     func.var_add("x_1");
     func.var_add("x_2");
+    //func.var_add("x_3");
 
     func.print();
 
@@ -42,6 +44,7 @@ int main(){
     //add the coeficients of the constraint sequentially
     cstr_01.coef_add(0.3);
     cstr_01.coef_add(0.1);
+    //cstr_01.coef_add(2.7);
     // add the cstr value
     cstr_01.value_add(2.7);
 
@@ -51,6 +54,7 @@ int main(){
 
     cstr_02.coef_add(0.5);
     cstr_02.coef_add(0.5);
+    //cstr_02.coef_add(0);
     cstr_02.value_add(6);
 
 
@@ -60,15 +64,28 @@ int main(){
 
     cstr_03.coef_add(0.6);
     cstr_03.coef_add(0.4);
+    //cstr_03.coef_add(6);
     cstr_03.value_add(6);
+
+    Model::cstr cstr_04;
+
+    cstr_04.type_def("geq");
+
+    cstr_04.coef_add(1);
+    cstr_04.coef_add(0);
+    cstr_04.coef_add(1);
+    cstr_04.value_add(21);
 
     // add the cstrs to the model
     model.cstr_add(cstr_01);
     model.cstr_add(cstr_02);
     model.cstr_add(cstr_03);
+    //model.cstr_add(cstr_04);
 
-    //model.tableau_generate();
+    //model.tableau_print();
+    //exit(0);
     model.solve();
+    std::cout << std::endl;
     model.tableau_print();
 
     // generate the tableau

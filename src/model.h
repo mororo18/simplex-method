@@ -27,16 +27,28 @@ public:
     void tableau_generate();
     Table tableau_get();
     void tableau_print();
+    void inverse_matrix_get();
+    void non_basic_coef_get();
+    void solution_primal_get();
+    void solution_dual_get();
     int n_var_get();
     int size();
-    void print();
+    void analyse();
     void solve();
+    void print();
 
 
 private:
     int var_qnt;
     std::string type;
     int type_id;
+    std::vector<int> I_index;
+    std::vector<std::vector<double>> inverse_matrix; 
+    std::vector<double> solution_primal;
+    std::vector<double> solution_dual;
+
+    std::vector<double> original_coef;
+    std::vector<double> non_basic_coef;
 
     solver_func solver;
 
@@ -48,6 +60,7 @@ private:
     Table tableau;
     void vec_multiply_scalar(std::vector<double> & vec, double scalar);
     void vec_add_vec(std::vector<double> & vec_a, const std::vector<double> & vec_b, double factor);
+    void vec_print_dbl(std::vector<double> vec);
 
 
 
