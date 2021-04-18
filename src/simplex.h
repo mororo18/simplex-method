@@ -3,6 +3,7 @@
 #include <iostream>
 
 typedef std::vector<std::vector<double>> Tableau;
+typedef void (*simplex_ptr)(Tableau & tableau);
 
 // vec funcs
 void vec_multiply_scalar(std::vector<double> & vec, double scalar);
@@ -14,3 +15,4 @@ int pivot_row_identify(Tableau & tableau, int pivot_column);
 void tableau_print(const Tableau & tableau);
 void pivot_column_clean(Tableau & tableau, int row, int column);
 void simplex_solve(Tableau & tableau);
+simplex_ptr simplex();

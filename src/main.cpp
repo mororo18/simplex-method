@@ -7,8 +7,8 @@
 */  
 
 int main(){
-    // qnt of variables
-    Model model(2);
+    // def solver and qnt of variables
+    Model model(simplex(), 2);
 
     model.def("min");
 
@@ -67,14 +67,15 @@ int main(){
     model.cstr_add(cstr_02);
     model.cstr_add(cstr_03);
 
-    model.tableau_generate();
+    //model.tableau_generate();
+    model.solve();
     model.tableau_print();
 
     // generate the tableau
-    Tableau tableau = model.tableau_get();
+    //Tableau tableau = model.tableau_get();
 
-    simplex_solve(model.tableau);
-    tableau_print(model.tableau);
+    //simplex_solve(model.tableau);
+    //tableau_print(model.tableau);
     //int M = 10;
 
 /*

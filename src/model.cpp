@@ -1,6 +1,8 @@
 #include "model.h"
 
-Model::Model(int qnt){
+Model::Model(solver_func func, int qnt){
+    solver = func;
+
     var_qnt = qnt;
 
     main_func = nullptr;
@@ -14,8 +16,9 @@ void Model::def(std::string model_type){
 
     if(!model_type.compare("max")){
         type = model_type;
+        // for 'max problem' the coefs have the opposite sign on the tableau
         type_id = -1; 
-    }else if( !model_type.compare("min")){
+    }else if(!model_type.compare("min")){
         type = model_type;
         type_id = 1;
     }else
@@ -72,22 +75,22 @@ void Model::tableau_generate(){
     const int cstr_qnt = cstr_vec.size();
 
     std::vector<double> vec = main_func->coef_get();
-    // insert the first line
+    // insert the first row
     tableau.push_back(vec);
 
-    for(int i = 0; i < vec.size(); i++)
-        std::cout << vec[i] << " ";
+    //for(int i = 0; i < vec.size(); i++)
+        //std::cout << vec[i] << " ";
     //exit(0);
 
-    // columns for slack variables of first line
+    // columns for slack variables of first row 
     for(int i = 0; i < cstr_qnt; i++)
         tableau[0].push_back(0);
     
     // current solution value
     tableau[0].push_back(0);
 
-    if(type_id == -1)
-        vec_multiply_scalar(tableau[0], -1);
+    if(type_id == MAX)
+        vec_multiply_scalar(tableau[0], MAX);
 
     for(int i = 0; i < cstr_vec.size(); i++){
         std::vector<double> cstr_cpy = cstr_vec[i].exp_coef;
@@ -100,7 +103,7 @@ void Model::tableau_generate(){
         cstr_cpy.push_back(cstr_value);
 
         if(cstr_vec[i].type_id == EQ){
-            // subtract the first line(obj_func) by the current line times BIG_M (eq_cstr)
+            // subtract the first row(obj_func) by the current row times BIG_M (eq_cstr)
             vec_add_vec(tableau[0], cstr_cpy, -BIG_M);
         }else if(cstr_vec[i].type_id == G_EQ){
             vec_multiply_scalar(cstr_cpy, G_EQ);
@@ -133,6 +136,15 @@ int Model::n_var_get(){
 
 int Model::size(){
     return cstr_vec.size();
+}
+
+void Model::print(){
+
+}
+
+void Model::solve(){
+    tableau_generate();
+    solver(tableau);
 }
 
 Model::obj_func::obj_func(int qnt){

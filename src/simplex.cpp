@@ -93,3 +93,7 @@ void simplex_solve(Tableau & tableau){
         pivot_column_clean(tableau, row, column);
     }
 }
+
+simplex_ptr simplex(){
+    return simplex_solve;
+}
