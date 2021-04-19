@@ -44,6 +44,7 @@ private:
     int type_id;
     std::vector<int> I_index;
     std::vector<std::vector<double>> inverse_matrix; 
+    double obj_value;
     std::vector<double> solution_primal;
     std::vector<double> solution_dual;
 

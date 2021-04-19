@@ -165,6 +165,7 @@ void Model::inverse_matrix_get(){
         }
     }
 
+    /*
     for(int i = 0; i < inverse_matrix.size(); i++){
         for(int j = 0; j < inverse_matrix[0].size(); j++){
             std::cout << inverse_matrix[i][j] << " ";
@@ -173,6 +174,7 @@ void Model::inverse_matrix_get(){
     }
 
     vec_print_dbl(original_coef);
+    */
 }
 
 void Model::non_basic_coef_get(){
@@ -181,14 +183,14 @@ void Model::non_basic_coef_get(){
         if(tableau[0][i] == 0){
             for(int j = 1; j < tableau.size(); j++){
                 if(tableau[j][i] == 1){
-                    coef[j-1] = -1.0f * original_coef[i];
+                    coef[j-1] = -1.0f * type_id * original_coef[i];
                 }
             }
         }
     }
 
     non_basic_coef = coef;
-    vec_print_dbl(non_basic_coef);
+    //vec_print_dbl(non_basic_coef);
 }
 
 void Model::solution_primal_get(){
@@ -218,6 +220,7 @@ void Model::solution_dual_get(){
 void Model::solve(){
     tableau_generate();
     solver(tableau);
+
     solution_primal_get();
     solution_dual_get();
     vec_print_dbl(solution_primal);
