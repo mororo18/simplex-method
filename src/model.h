@@ -36,7 +36,7 @@ public:
     void analyse();
     void solve();
     void print();
-
+    double obj_value_get();
 
 private:
     int var_qnt;

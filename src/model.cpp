@@ -183,7 +183,7 @@ void Model::non_basic_coef_get(){
         if(tableau[0][i] == 0){
             for(int j = 1; j < tableau.size(); j++){
                 if(tableau[j][i] == 1){
-                    coef[j-1] = -1.0f * type_id * original_coef[i];
+                    coef[j-1] = -1 * type_id * original_coef[i];
                 }
             }
         }
@@ -201,6 +201,8 @@ void Model::solution_primal_get(){
                 solution_primal.push_back(tableau[j][s_col]);
         }
     }
+
+    obj_value = std::abs(tableau[0][s_col]);
 }
 
 void Model::solution_dual_get(){
@@ -217,14 +219,16 @@ void Model::solution_dual_get(){
     }
 }
 
+double Model::obj_value_get(){
+    return obj_value;
+}
+
 void Model::solve(){
     tableau_generate();
     solver(tableau);
 
     solution_primal_get();
     solution_dual_get();
-    vec_print_dbl(solution_primal);
-    vec_print_dbl(solution_dual);
 }
 
 Table Model::tableau_get(){
@@ -253,7 +257,9 @@ void Model::analyse(){
 }
 
 void Model::print(){
-
+    std::cout << "Funcao objetivo : " << obj_value_get() << std::endl; 
+    std::cout << "Solucao primal : "; vec_print_dbl(solution_primal);
+    std::cout << "Solucao dual : ";vec_print_dbl(solution_dual);
 }
 
 Model::obj_func::obj_func(int qnt){

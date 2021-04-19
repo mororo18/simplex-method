@@ -86,6 +86,8 @@ int main(){
     //exit(0);
     model.solve();
     std::cout << std::endl;
+
+    model.print();
     model.tableau_print();
 
     // generate the tableau
