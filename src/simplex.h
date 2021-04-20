@@ -15,4 +15,8 @@ int pivot_row_identify(Tableau & tableau, int pivot_column);
 void tableau_print(const Tableau & tableau);
 void pivot_column_clean(Tableau & tableau, int row, int column);
 void simplex_solve(Tableau & tableau);
+int dual_simplex_pivot_row_identify(Tableau & tableau);
+int dual_simplex_pivot_row_identify(Tableau & tableau, int pivot_row);
+void dual_simplex_solve(Tableau & tableau);
+void algo_def(Tableau & tableau);
 simplex_ptr simplex();

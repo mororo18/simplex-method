@@ -22,7 +22,10 @@ void Model::def(std::string model_type){
         type = model_type;
         type_id = 1;
     }else
-        std::cout << "Invalid constraint type" << std::endl; } 
+        std::cout << "Invalid constraint type" << std::endl; 
+
+} 
+
 void Model::func_add(Model::obj_func func){
 
     if(func.size() != var_qnt){
@@ -219,8 +222,52 @@ void Model::solution_dual_get(){
     }
 }
 
-double Model::obj_value_get(){
-    return obj_value;
+void Model::b_opt_store(){
+    if(!b_opt.empty())
+        b_opt.clear();
+            
+    const int s_col = tableau[0].size() - 1;
+    for(int j = 1; j < tableau.size(); j++)
+        b_opt.push_back(tableau[j][s_col]);
+    
+}
+
+void Model::b_range_calc(){
+    b_opt_store();    
+
+    for(int col = 0; col < inverse_matrix[0].size(); col++){
+        double upper_bound = INFINITE; 
+        double lower_bound = -INFINITE;
+
+        for(int row = 0; row < inverse_matrix.size(); row++){
+            double coef = inverse_matrix[row][col];
+            double coef_inv = 1.0f / coef;
+            double value = -1 * b_opt[row];
+
+
+            value = value * coef_inv;
+
+            if(coef_inv < 0 && value < upper_bound){
+                upper_bound = value; 
+
+            }else if(value > lower_bound){
+                lower_bound = value;
+            }
+
+        }
+
+        std::pair<double, double> range;
+        range.first = lower_bound;
+        range.second = upper_bound;
+
+        b_range.push_back(range);
+
+        std::cout << "cstr n" << col << "  de " << lower_bound << " a " << upper_bound << std::endl;
+    }
+}
+
+void Model::analyse(){
+    
 }
 
 void Model::solve(){
@@ -229,6 +276,11 @@ void Model::solve(){
 
     solution_primal_get();
     solution_dual_get();
+    b_range_calc();
+}
+
+double Model::obj_value_get(){
+    return obj_value;
 }
 
 Table Model::tableau_get(){
@@ -250,10 +302,6 @@ int Model::n_var_get(){
 
 int Model::size(){
     return cstr_vec.size();
-}
-
-void Model::analyse(){
-
 }
 
 void Model::print(){

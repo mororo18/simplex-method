@@ -87,8 +87,27 @@ int main(){
     model.solve();
     std::cout << std::endl;
 
+    model.analyse();
     model.print();
     model.tableau_print();
+
+
+    std::cout << std::endl;
+    std::cout << std::endl;
+
+    Tableau tableau = 
+
+    {
+
+    {4, 12, 18, 0, 0, 0},
+    {-1, 0, -3, 1, 0, -3},
+    {0, -2, -2, 0, 1, -5}
+
+    };
+
+    //dual_simplex_solve(tableau);
+    //algo_def(tableau);
+    //tableau_print(tableau);
 
     // generate the tableau
     //Tableau tableau = model.tableau_get();

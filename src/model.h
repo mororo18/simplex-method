@@ -4,10 +4,12 @@
 #include <vector>
 
 #define BIG_M 999999
+#define INFINITE 999999
 
 #define MAX -1
 
 #define EQ 0 
+#define L_EQ 1 
 #define G_EQ -1 
 
 typedef std::vector<std::vector<double>> Table;
@@ -37,6 +39,8 @@ public:
     void solve();
     void print();
     double obj_value_get();
+    void b_opt_store();
+    void b_range_calc();
 
 private:
     int var_qnt;
@@ -44,6 +48,8 @@ private:
     int type_id;
     std::vector<int> I_index;
     std::vector<std::vector<double>> inverse_matrix; 
+    std::vector<double> b_opt;
+    std::vector<std::pair<double, double>> b_range;
     double obj_value;
     std::vector<double> solution_primal;
     std::vector<double> solution_dual;
