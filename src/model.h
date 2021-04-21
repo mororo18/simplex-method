@@ -2,6 +2,7 @@
 #include <cfloat>
 #include <iostream>
 #include <vector>
+#include <stdio.h>
 
 #define BIG_M 999999
 #define INFINITE 999999
@@ -42,6 +43,9 @@ public:
     void b_opt_store();
     void b_range_calc();
     void c_range_calc();
+    void tableau_resize(cstr cstr_new);
+    void analyse_add(cstr cstr_new);
+    void analyse_reopt();
 
 private:
     int var_qnt;
@@ -61,18 +65,22 @@ private:
 
     solver_func solver;
 
-
-    //std::vector<double> obj_func;
-    obj_func * main_func;// = new obj_func::obj_func(var_qnt);
+    obj_func * main_func;
     std::vector<cstr> cstr_vec;
+    std::vector<cstr> cstr_vec_new;
 
     Table tableau;
+    Table solution_tableau;
+
+    //infos derivadas do tableau final original modificado (para analise de sensibilidade )
+
+
+
+
+
     void vec_multiply_scalar(std::vector<double> & vec, double scalar);
     void vec_add_vec(std::vector<double> & vec_a, const std::vector<double> & vec_b, double factor);
     void vec_print_dbl(std::vector<double> vec);
-
-
-
 };
 
 class Model::obj_func {
@@ -82,6 +90,7 @@ public:
     void var_add(char name[]);
     void coef_add(double coef);
     std::vector<double> coef_get();
+    std::string var_name_get(int n);
     int size();
     void print();
 

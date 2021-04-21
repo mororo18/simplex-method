@@ -51,6 +51,20 @@ void Model::cstr_add(Model::cstr constraint){
     cstr_vec.push_back(constraint);
 }
 
+void Model::analyse_add(cstr cstr_new){
+
+    if(cstr_new.exp_coef.size() != var_qnt){
+        std::cout << "Invalid constraint added to analyse" << std::endl;
+        exit(0);
+    }
+
+    vec_print_dbl(cstr_new.exp_coef);
+    //exit(0);
+
+    cstr_vec_new.push_back(cstr_new); 
+    vec_print_dbl(cstr_vec_new[0].exp_coef);
+}
+
 void Model::vec_multiply_scalar(std::vector<double> & vec, double scalar){
     for(int i = 0; i < vec.size(); i++){
         if(vec[i] <= DBL_EPSILON && vec[i] >= -DBL_EPSILON) //eq to 0
@@ -155,6 +169,7 @@ void Model::tableau_generate(){
     
         tableau.push_back(tableau_row);
     }
+
 
 }
 
@@ -282,14 +297,15 @@ void Model::c_range_calc(){
                 }
             }
 
-            // REVIRSAR POSTERIORMENTE
             double upper_bound = INFINITE ; 
             double lower_bound = -INFINITE ;
 
             for(int col_i = 0; col_i < tableau[0].size() - 1; col_i++){
                 if(tableau[0][col_i] == 0 || tableau[0][col_i] >= INFINITE -2)
                     continue;
-                double coef = - tableau[row_i][col_i];
+
+                // REVIRSAR POSTERIORMENTE
+                double coef = -1.0f * type_id * tableau[row_i][col_i];
                 double coef_inv = 1.0f / coef;
                 double value = -1.0f * tableau[0][col_i];
 
@@ -313,6 +329,95 @@ void Model::c_range_calc(){
 }
 
 void Model::analyse(){
+    tableau = solution_tableau;
+
+    // right hand
+    b_range_calc();
+    c_range_calc();
+}
+
+void Model::tableau_resize(cstr cstr_new){
+
+    int row_size = tableau[0].size();
+    // add new row
+    std::vector<double> row_new = cstr_new.exp_coef;
+    vec_print_dbl(row_new);
+
+    if(cstr_new.type_id == G_EQ){
+        for(int row = var_qnt; row < tableau[0].size(); row++)
+            row_new.push_back(0); 
+        row_new.push_back(-1); 
+        row_new.push_back(0); 
+
+        row_new.push_back(cstr_new.value);
+
+        int col_i = row_size - 1;
+
+        for(int row = 0; row < tableau.size(); row++){
+            tableau[row].insert(tableau[row].begin() + col_i, 0);
+            tableau[row].insert(tableau[row].begin() + col_i, 0);
+        }
+    }else { 
+        for(int row = var_qnt; row < tableau[0].size(); row++)
+            row_new.push_back(0); 
+        //row_new.push_back(0); 
+
+        row_new.push_back(cstr_new.value);
+
+        int col_i = row_size - 1;
+
+        for(int row = 0; row < tableau.size(); row++)
+            tableau[row].insert(tableau[row].begin() + col_i, 0);
+    }
+
+    if(cstr_new.type_id == G_EQ || cstr_new.type_id == EQ)
+        vec_add_vec(tableau[0], row_new, -BIG_M);
+
+    int col_i = row_new.size() - 2;
+    row_new[col_i] = 1;
+
+    //clean columns of basic vars
+    for(int col = 0; col < tableau[0].size() - 1; col++){
+
+        if(tableau[0][col] == 0 && row_new[col] != 0){
+            int row_i;
+            for(int row = 0; row < tableau.size(); row++){
+                if(tableau[row][col] == 1){
+                    row_i = row;
+                    break;
+                }
+            }
+
+            double coef = row_new[col];
+
+            vec_add_vec(row_new, tableau[row_i], -coef);
+
+            break;
+        }
+    }
+
+    tableau.push_back(row_new);
+
+
+}
+
+void Model::analyse_reopt(){
+    if(cstr_vec_new.empty()){
+        std::cout << "No constraints added to re-optimal analysis" << std::endl;
+        exit(0);
+    }else
+        tableau = solution_tableau;
+
+    for(int i = 0; i < cstr_vec_new.size(); i++){
+        tableau_resize(cstr_vec_new[i]);
+        vec_print_dbl(cstr_vec_new[i].exp_coef);
+        //exit(0);
+    }
+
+    tableau_print();
+
+    solver(tableau);
+
     // right hand
     b_range_calc();
     c_range_calc();
@@ -321,9 +426,14 @@ void Model::analyse(){
 void Model::solve(){
     tableau_generate();
     solver(tableau);
+    solution_tableau = tableau;
 
     solution_primal_get();
     solution_dual_get();
+    std::cout << "\n\n";
+    std::cout << "Funcao objetivo : " << obj_value_get() << std::endl; 
+    std::cout << "Solucao primal : "; vec_print_dbl(solution_primal);
+    std::cout << "Solucao dual : ";vec_print_dbl(solution_dual);
 }
 
 double Model::obj_value_get(){
@@ -352,9 +462,38 @@ int Model::size(){
 }
 
 void Model::print(){
-    std::cout << "Funcao objetivo : " << obj_value_get() << std::endl; 
-    std::cout << "Solucao primal : "; vec_print_dbl(solution_primal);
-    std::cout << "Solucao dual : ";vec_print_dbl(solution_dual);
+
+    printf("========= MODEL =========\n" 
+            "\nN_o vars = %d\n" 
+            "\n%s ", var_qnt, type.c_str());
+            main_func->print();
+
+    printf("\nConstraints :\n");
+    for(int i = 0; i < cstr_vec.size(); i++){
+        std::vector<double> coef_vec = cstr_vec[i].exp_coef;
+        printf("  (%d) ", i);
+        for(int j = 0; j < coef_vec.size(); j++){
+            if(coef_vec[j] < 0)
+                std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
+            else if(j != 0)
+                std::cout << " + " << coef_vec[j] << " " << main_func->var_name_get(j);
+            else
+                std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
+
+        }
+
+        if(cstr_vec[i].type_id == EQ)
+            std::cout << " = ";
+        else if(cstr_vec[i].type_id == L_EQ)
+            std::cout << " <= ";
+        else if(cstr_vec[i].type_id == G_EQ)
+            std::cout << " >= ";
+
+        double value = cstr_vec[i].value;
+        std::cout  << value << std::endl;
+        
+    }
+
 }
 
 Model::obj_func::obj_func(int qnt){
@@ -387,13 +526,28 @@ std::vector<double> Model::obj_func::coef_get(){
     return coef;
 }
 
+std::string Model::obj_func::var_name_get(int n){
+    if(n > var_name.size() - 1){
+        std::cout << "Missing some var_name" << std::endl;
+        exit(0);
+    }
+    return var_name[n];
+}
+
 int Model::obj_func::size(){
     return var_qnt;
 }
 
 void Model::obj_func::print(){
-    for(int i = 0; i < coef.size(); i++)
-        std::cout << coef[i] << "*" << var_name[i] << " ";
+    std::cout << "Z = ";
+    for(int i = 0; i < coef.size(); i++){
+        if(coef[i] < 0)
+            std::cout << " " << coef[i] << " " << var_name[i];
+        else if(i != 0)
+            std::cout << " + " << coef[i] << " " << var_name[i];
+        else
+            std::cout << coef[i] << " " << var_name[i];
+    }
     std::cout << std::endl;
 
 }
@@ -412,7 +566,6 @@ void Model::cstr::type_def(cstr_t tp){
     }else if(!tp.compare("leq")){
         type = tp;
         type_id = 1;
-        std::cout << "aqui" << std::endl;
     }else if(!tp.compare("geq")){
         type = tp;
         type_id = -1;

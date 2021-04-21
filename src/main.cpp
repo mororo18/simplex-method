@@ -2,99 +2,195 @@
 #include "model.h"
 
 /*
-    The Model class generates a tableau from the received data
-    and the simplex algorithm solves the tableau
-*/  
+   The Model class generates a tableau from the received data
+   and the simplex algorithm solves the tableau
+ */  
 
 int main(){
-    // def solver and qnt of variables
-    Model model(simplex(), 2);
 
-    model.def("min");
+    /* =========== MODEL 01 ============*/
 
-    Model::obj_func func(2);
+    {
+        const int n_var = 2;
+        
+        // init with the solver and qnt of variables
+        Model model(simplex(), n_var);
 
-    func.coef_add(0.4);
-    func.coef_add(0.5);
-    //func.coef_add(8);
+        // def the problem type
+        model.def("min");
 
-    func.var_add("x_1");
-    func.var_add("x_2");
-    //func.var_add("x_3");
+        /* =========== OBJECTIVE FUNCTION ============*/
 
-    func.print();
+        // declares the O.F. 
+        Model::obj_func func(n_var);
 
-    model.func_add(func);
+        // add the coeficients
+        func.coef_add(0.4);
+        func.coef_add(0.5);
 
-    // def the problem type
-    //model.type_def("min");
-    /*
+        // add the variables names
+        func.var_add("X_1");
+        func.var_add("X_2");
 
-    //add the coeficients of obj_func sequentially
-    model.obj_coef_add(0.4);
-    model.obj_coef_add(0.5);
-    //model.obj_func_print();
-    */
-    
-    Model::cstr cstr_01;
+        //func.print();
 
-    // def the type of cstr
-    cstr_01.type_def("leq");
+        // add the F.O. to the model
+        model.func_add(func);
 
-    //add the coeficients of the constraint sequentially
-    cstr_01.coef_add(0.3);
-    cstr_01.coef_add(0.1);
-    //cstr_01.coef_add(2.7);
-    // add the cstr value
-    cstr_01.value_add(2.7);
+        /* =========== CONSTRAINTS ============*/
 
-    Model::cstr cstr_02;
+        Model::cstr cstr_01;
 
-    cstr_02.type_def("eq");
+        // def the type of cstr
+        cstr_01.type_def("leq");
 
-    cstr_02.coef_add(0.5);
-    cstr_02.coef_add(0.5);
-    //cstr_02.coef_add(0);
-    cstr_02.value_add(6);
+        //add the coeficients of the constraint sequentially
+        cstr_01.coef_add(0.3);
+        cstr_01.coef_add(0.1);
+
+        // add the cstr value
+        cstr_01.value_add(2.7);
 
 
-    Model::cstr cstr_03;
+        Model::cstr cstr_02;
 
-    cstr_03.type_def("geq");
+        cstr_02.type_def("eq");
 
-    cstr_03.coef_add(0.6);
-    cstr_03.coef_add(0.4);
-    //cstr_03.coef_add(6);
-    cstr_03.value_add(6);
+        cstr_02.coef_add(0.5);
+        cstr_02.coef_add(0.5);
 
-    Model::cstr cstr_04;
-
-    cstr_04.type_def("geq");
-
-    cstr_04.coef_add(1);
-    cstr_04.coef_add(0);
-    cstr_04.coef_add(1);
-    cstr_04.value_add(21);
-
-    // add the cstrs to the model
-    model.cstr_add(cstr_01);
-    model.cstr_add(cstr_02);
-    model.cstr_add(cstr_03);
-    //model.cstr_add(cstr_04);
-
-    //model.tableau_print();
-    //exit(0);
-    model.solve();
-    std::cout << std::endl;
-
-    model.analyse();
-    model.print();
-    model.tableau_print();
+        cstr_02.value_add(6);
 
 
-    std::cout << std::endl;
-    std::cout << std::endl;
 
+        Model::cstr cstr_03;
+
+        cstr_03.type_def("geq");
+
+        cstr_03.coef_add(0.6);
+        cstr_03.coef_add(0.4);
+
+        cstr_03.value_add(6);
+
+
+        // add the cstrs to the model
+        model.cstr_add(cstr_01);
+        model.cstr_add(cstr_02);
+        model.cstr_add(cstr_03);
+
+        model.print();
+
+        //model.tableau_print();
+        model.solve();
+        std::cout << std::endl;
+
+        model.analyse();
+        model.tableau_print();
+
+
+        std::cout << std::endl;
+        std::cout << std::endl;
+
+    }
+
+    /* =========== MODEL 02 ============*/
+
+    {
+        const int n_var = 2;
+        
+        // init with the solver and qnt of variables
+        Model model(simplex(), n_var);
+
+        // def the problem type
+        model.def("max");
+
+        /* =========== OBJECTIVE FUNCTION ============*/
+
+        // declares the O.F. 
+        Model::obj_func func(n_var);
+
+        // add the coeficients
+        func.coef_add(3);
+        func.coef_add(5);
+
+        // add the variables names
+        func.var_add("X_1");
+        func.var_add("X_2");
+
+        //func.print();
+
+        // add the F.O. to the model
+        model.func_add(func);
+
+        /* =========== CONSTRAINTS ============*/
+
+        Model::cstr cstr_01;
+
+        // def the type of cstr
+        cstr_01.type_def("leq");
+
+        //add the coeficients of the constraint sequentially
+        cstr_01.coef_add(1);
+        cstr_01.coef_add(0);
+
+        // add the cstr value
+        cstr_01.value_add(4);
+
+
+        Model::cstr cstr_02;
+
+        cstr_02.type_def("leq");
+
+        cstr_02.coef_add(0);
+        cstr_02.coef_add(2);
+
+        cstr_02.value_add(24);
+
+
+
+        Model::cstr cstr_03;
+
+        cstr_03.type_def("leq");
+
+        cstr_03.coef_add(3);
+        cstr_03.coef_add(2);
+
+        cstr_03.value_add(18);
+
+
+        Model::cstr cstr_04;
+
+        cstr_04.type_def("leq");
+
+        cstr_04.coef_add(2);
+        cstr_04.coef_add(3);
+
+        cstr_04.value_add(24);
+
+        // add the cstrs to the model
+        model.cstr_add(cstr_01);
+        model.cstr_add(cstr_02);
+        model.cstr_add(cstr_03);
+
+        model.analyse_add(cstr_04);
+
+        //model.print();
+
+        //model.tableau_print();
+        model.solve();
+        std::cout << std::endl;
+
+        //model.analyse();
+        //model.tableau_print();
+
+        model.analyse_reopt();
+        model.tableau_print();
+
+
+        std::cout << std::endl;
+        std::cout << std::endl;
+
+    }
 /*
     Tableau tableau = 
 
