@@ -139,15 +139,15 @@ int dual_simplex_pivot_row_identify(Tableau & tableau, int pivot_row){
 
 void dual_simplex_solve(Tableau & tableau){
     while(true){
-        tableau_print(tableau);
+        //tableau_print(tableau);
         int row = dual_simplex_pivot_row_identify(tableau);
 
-        std::cout << "linha " << row << std::endl;
+        //std::cout << "linha " << row << std::endl;
         if(row == -1)
             break;
 
         int column = dual_simplex_pivot_row_identify(tableau, row);
-        std::cout << "coluna " << column << std::endl;
+        //std::cout << "coluna " << column << std::endl;
 
         pivot_column_clean(tableau, row, column);
     }

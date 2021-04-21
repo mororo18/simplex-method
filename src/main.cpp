@@ -95,6 +95,7 @@ int main(){
     std::cout << std::endl;
     std::cout << std::endl;
 
+/*
     Tableau tableau = 
 
     {
@@ -104,6 +105,7 @@ int main(){
     {0, -2, -2, 0, 1, -5}
 
     };
+*/
 
     //dual_simplex_solve(tableau);
     //algo_def(tableau);

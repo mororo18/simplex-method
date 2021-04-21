@@ -244,7 +244,6 @@ void Model::b_range_calc(){
             double coef_inv = 1.0f / coef;
             double value = -1 * b_opt[row];
 
-
             value = value * coef_inv;
 
             if(coef_inv < 0 && value < upper_bound){
@@ -266,8 +265,57 @@ void Model::b_range_calc(){
     }
 }
 
+void Model::c_range_calc(){
+    for(int col = 0; col < var_qnt; col++){
+        if(tableau[0][col] > 0){
+            std::pair<double, double> range = std::make_pair(-INFINITE, tableau[0][col]);
+            std::cout << "var X_" << col << "  de " << -INFINITE << " a " << tableau[0][col] << std::endl;
+            c_range.push_back(range);
+        }else if(tableau[0][col] == 0){
+            int row_i;
+
+            // identify the var row, where c_i_row == 1
+            for(int row = 1; row < tableau.size(); row++){
+                if(tableau[row][col] == 1){
+                    row_i = row;
+                    break;
+                }
+            }
+
+            // REVIRSAR POSTERIORMENTE
+            double upper_bound = INFINITE ; 
+            double lower_bound = -INFINITE ;
+
+            for(int col_i = 0; col_i < tableau[0].size() - 1; col_i++){
+                if(tableau[0][col_i] == 0 || tableau[0][col_i] >= INFINITE -2)
+                    continue;
+                double coef = - tableau[row_i][col_i];
+                double coef_inv = 1.0f / coef;
+                double value = -1.0f * tableau[0][col_i];
+
+                value *= coef_inv;
+
+                if(coef < 0 && value < upper_bound){
+                    upper_bound = value;
+                }else if(value > lower_bound){
+                    lower_bound = value;
+                }
+                
+            }
+
+            std::pair<double, double> range = std::make_pair(lower_bound, upper_bound);
+            std::cout << "var X_" << col << "  de " << lower_bound << " a " << upper_bound << std::endl;
+
+            c_range.push_back(range);
+            
+        }
+    }
+}
+
 void Model::analyse(){
-    
+    // right hand
+    b_range_calc();
+    c_range_calc();
 }
 
 void Model::solve(){
@@ -276,7 +324,6 @@ void Model::solve(){
 
     solution_primal_get();
     solution_dual_get();
-    b_range_calc();
 }
 
 double Model::obj_value_get(){

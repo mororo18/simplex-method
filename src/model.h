@@ -41,6 +41,7 @@ public:
     double obj_value_get();
     void b_opt_store();
     void b_range_calc();
+    void c_range_calc();
 
 private:
     int var_qnt;
@@ -49,7 +50,8 @@ private:
     std::vector<int> I_index;
     std::vector<std::vector<double>> inverse_matrix; 
     std::vector<double> b_opt;
-    std::vector<std::pair<double, double>> b_range;
+    std::vector<std::pair<double, double>> b_range; //restrictions right rand
+    std::vector<std::pair<double, double>> c_range; // obj_func coefs
     double obj_value;
     std::vector<double> solution_primal;
     std::vector<double> solution_dual;
