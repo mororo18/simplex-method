@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <stdio.h>
+#include <sstream>
+#include <iomanip>
 
 #define BIG_M 999999
 #define INFINITE 999999
@@ -79,6 +81,11 @@ private:
     std::vector<double> original_coef;    // analise
     std::vector<double> non_basic_coef;    // analise
 
+    std::string model_output;
+    std::string model_output_mod;
+    std::string analysis_output;
+    std::string analysis_output_mod;
+
 
     void vec_multiply_scalar(std::vector<double> & vec, double scalar);
     void vec_add_vec(std::vector<double> & vec_a, const std::vector<double> & vec_b, double factor);
@@ -94,6 +101,7 @@ public:
     std::vector<double> coef_get();
     std::string var_name_get(int n);
     int size();
+    std::string output_generate();
     void print();
 
 private:
