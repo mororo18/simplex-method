@@ -6,6 +6,9 @@ Model::Model(solver_func func, int qnt){
     var_qnt = qnt;
 
     main_func = nullptr;
+    solved = false;
+    analysed = false;
+    analysed_mod = false;
 }
 
 Model::~Model(){
@@ -79,8 +82,6 @@ void Model::analyse_add(cstr cstr_new){
         std::cout << "Invalid constraint added to analyse" << std::endl;
         exit(0);
     }
-
-    //exit(0);
 
     cstr_vec_new.push_back(cstr_new); 
 }
@@ -197,17 +198,6 @@ void Model::inverse_matrix_get(){
             inverse_matrix[j-1][i] = tableau[j][col]; 
         }
     }
-
-    /*
-    for(int i = 0; i < inverse_matrix.size(); i++){
-        for(int j = 0; j < inverse_matrix[0].size(); j++){
-            std::cout << inverse_matrix[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    vec_print_dbl(original_coef);
-    */
 }
 
 void Model::non_basic_coef_get(){
@@ -364,11 +354,18 @@ void Model::c_range_calc(){
 }
 
 void Model::analyse(){
+    if(!solved){
+        std::cout << "The Model wasnt already solved to be analysed\n";
+        exit(0);
+    }
+    
     tableau = solution_tableau;
 
     // right hand
     b_range_calc();
     c_range_calc();
+
+    analysed = true;
 }
 
 void Model::tableau_resize(cstr cstr_new){
@@ -440,7 +437,10 @@ void Model::tableau_resize(cstr cstr_new){
 }
 
 void Model::analyse_reopt(){
-    if(cstr_vec_new.empty()){
+    if(!solved){
+        std::cout << "The Model wasnt already solved to be analysed\n";
+        exit(0);
+    }else if(cstr_vec_new.empty()){
         std::cout << "No constraints added for re-optimal analysis" << std::endl;
         exit(0);
     }else
@@ -450,7 +450,7 @@ void Model::analyse_reopt(){
         tableau_resize(cstr_vec_new[i]);
     }
 
-    tableau_print();
+    //tableau_print();
     solver(tableau);
     
     solution_primal_get();
@@ -464,6 +464,7 @@ void Model::analyse_reopt(){
     // right hand
     b_range_calc();
     c_range_calc();
+    analysed_mod = true;
 }
 
 std::string Model::output_generate(){
@@ -471,20 +472,21 @@ std::string Model::output_generate(){
     
     char header[200];
     sprintf(header, "========= MODEL =========\n" 
-                    "\nN_o vars = %d\n" 
-                    "\n%s ", var_qnt, type.c_str());
+                    "\n N_o vars = %d\n" 
+                    "\n %s ", var_qnt, type.c_str());
 
+    // init with header
     output = header;
 
-    // append de O.F.
+    // append the O.F.
     output.append(main_func->output_generate());
 
-    output.append("\nConstraints :\n");
+    output.append("\n [s.t.] Constraints :\n\n");
 
     for(int i = 0; i < cstr_vec.size(); i++){
         std::vector<double> coef_vec = cstr_vec[i].exp_coef;
         char cstr_n[20];
-        sprintf(cstr_n, "  (%d) ", i);
+        sprintf(cstr_n, "    (%d) ", i);
         output.append(cstr_n);
 
         std::string opt1;
@@ -502,35 +504,105 @@ std::string Model::output_generate(){
 
             if(coef_vec[j] < 0)
                 output.append(opt1);
-                //std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
             else if(j != 0)
                 output.append(opt2);
-               //std::cout << " + " << coef_vec[j] << " " << main_func->var_name_get(j);
             else
                 output.append(opt3);
-                //std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
 
         }
 
         if(cstr_vec[i].type_id == EQ)
             output.append(" = ");
-            //std::cout << " = ";
         else if(cstr_vec[i].type_id == L_EQ)
             output.append(" <= ");
-            //std::cout << " <= ";
         else if(cstr_vec[i].type_id == G_EQ)
             output.append(" >= ");
-            //std::cout << " >= ";
 
         double value = cstr_vec[i].value;
-        //std::cout  << value << std::endl;
         std::stringstream value_stream;
         value_stream << std::setprecision(3) << value;
 
         output.append(value_stream.str() + "\n");
         
     }
+
+    if(solved){
+        output.append("\n\n[*] OPTIMAL SOLUTION:\n\n > O.F. value = ");
+
+        std::stringstream obj_value_stream;
+        obj_value_stream << std::setprecision(3) << obj_value;
+
+        output.append(obj_value_stream.str() + "\n");
+
+        output.append("\n Primal Variables:\n\n");
+
+        for(int i = 0; i < solution_primal.size(); i++){
+            output.append("   > ");
+            output.append(main_func->var_name_get(i) + " = ");
+            
+            std::stringstream var_value_stream;
+            var_value_stream << std::setprecision(3) << solution_primal[i];
+            output.append(var_value_stream.str() + ";\n");
+
+        }
+        
+        output.append("\n Dual Variables:\n\n");
+
+        for(int i = 0; i < solution_dual.size(); i++){
+            output.append("   > Y_" + std::to_string(i+1) + " = ");
+            
+            std::stringstream var_value_stream;
+            var_value_stream << std::setprecision(3) << solution_dual[i];
+            output.append(var_value_stream.str() + ";\n");
+
+        }
+        
+    }
+
+    if(analysed){
+        output.append("\n\n[@] SENSITIVITY ANALYSIS:\n\n");
+        
+        output.append(" > Ranges for unchange the Basis: \n\n");
+        output.append("\t\t > OBJ Coefficient Ranges <\n");
+        output.append("   Variables\tCrnt Coef\tAlwb Inc.\tAlwb Dec.\n");
+        for(int i = 0; i < var_qnt; i++){
+            std::stringstream coef_stream;
+            std::stringstream upper_bd_stream;
+            std::stringstream lower_bd_stream;
+
+            std::string coef_str;
+            std::string upper_str;
+            std::string lower_str;
+
+            coef_stream << std::setprecision(3) << original_coef[i];
+            upper_bd_stream << std::setprecision(3) << std::abs(c_range[i].second);
+            lower_bd_stream << std::setprecision(3) << std::abs(c_range[i].first);
+
+            coef_str = coef_stream.str();
+
+            if(std::abs(c_range[i].second) >= INFINITE - 2){
+                upper_str = "INFINITY";
+                output.append("   > " + main_func->var_name_get(i) + "\t" + coef_str + "\t\t" + upper_str + "\t");
+            }else{
+                upper_str = upper_bd_stream.str();
+                output.append("   > " + main_func->var_name_get(i) +  "\t" + coef_str + "\t\t" + upper_str + "\t\t");
+            }
+
+            if(std::abs(c_range[i].first) >= INFINITE - 2){
+                lower_str = "INFINITY";
+            }else
+                lower_str = lower_bd_stream.str();
+
+            output.append(lower_str + "\n");
+
+
+        }
+    }
     
+    if(analysed_mod){
+
+    }
+
     return output;
 }
 
@@ -545,6 +617,7 @@ void Model::solve(){
     std::cout << "Funcao objetivo : " << obj_value_get() << std::endl; 
     std::cout << "Solucao primal : "; vec_print_dbl(solution_primal);
     std::cout << "Solucao dual : ";vec_print_dbl(solution_dual);
+    solved = true;
 }
 
 double Model::obj_value_get(){
@@ -575,42 +648,7 @@ int Model::size(){
 }
 
 void Model::print(){
-/*
-
-    printf("========= MODEL =========\n" 
-            "\nN_o vars = %d\n" 
-            "\n%s ", var_qnt, type.c_str());
-            main_func->print();
-
-    printf("\nConstraints :\n");
-    for(int i = 0; i < cstr_vec.size(); i++){
-        std::vector<double> coef_vec = cstr_vec[i].exp_coef;
-        printf("  (%d) ", i);
-        for(int j = 0; j < coef_vec.size(); j++){
-            if(coef_vec[j] < 0)
-                std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
-            else if(j != 0)
-                std::cout << " + " << coef_vec[j] << " " << main_func->var_name_get(j);
-            else
-                std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
-
-        }
-
-        if(cstr_vec[i].type_id == EQ)
-            std::cout << " = ";
-        else if(cstr_vec[i].type_id == L_EQ)
-            std::cout << " <= ";
-        else if(cstr_vec[i].type_id == G_EQ)
-            std::cout << " >= ";
-
-        double value = cstr_vec[i].value;
-        std::cout  << value << std::endl;
-        
-    }
-    */
-
     std::cout << output_generate();
-
 }
 
 Model::obj_func::obj_func(int qnt){

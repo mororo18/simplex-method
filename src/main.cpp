@@ -85,7 +85,7 @@ int main(){
         std::cout << std::endl;
 
         model.analyse();
-        model.tableau_print();
+        //model.tableau_print();
 
 
         std::cout << std::endl;
@@ -174,17 +174,17 @@ int main(){
 
         model.analyse_add(cstr_04);
 
-        //model.print();
 
         //model.tableau_print();
         model.solve();
         std::cout << std::endl;
 
-        //model.analyse();
+        model.analyse();
         //model.tableau_print();
 
-        model.analyse_reopt();
-        model.tableau_print();
+        //model.analyse_reopt();
+        model.print();
+        //model.tableau_print();
 
         //exit(0);
 

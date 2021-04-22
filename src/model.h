@@ -57,6 +57,9 @@ private:
     int type_id;
     double obj_value;
 
+    bool solved;
+    bool analysed;
+    bool analysed_mod;
 
     solver_func solver;
 
