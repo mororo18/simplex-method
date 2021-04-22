@@ -20,6 +20,7 @@ class Model {
 
 public:
     Model(solver_func func, int var_qnt);
+    ~Model();
 
     class obj_func;
     class cstr;
@@ -30,38 +31,29 @@ public:
     void tableau_generate();
     Table tableau_get();
     void tableau_print();
-    void inverse_matrix_get();
-    void non_basic_coef_get();
+    void inverse_matrix_get();  // analise
+    void non_basic_coef_get();   // analise
     void solution_primal_get();
     void solution_dual_get();
     int n_var_get();
     int size();
-    void analyse();
+    void analyse();   // analise
     void solve();
     void print();
     double obj_value_get();
-    void b_opt_store();
-    void b_range_calc();
-    void c_range_calc();
-    void tableau_resize(cstr cstr_new);
-    void analyse_add(cstr cstr_new);
-    void analyse_reopt();
+    void b_opt_store();   // analise
+    void b_range_calc();    // analise
+    void c_range_calc();    // analise
+    void tableau_resize(cstr cstr_new);   // analise
+    void analyse_add(cstr cstr_new);    // analise
+    void analyse_reopt();     // analise
 
 private:
     int var_qnt;
     std::string type;
     int type_id;
-    std::vector<int> I_index;
-    std::vector<std::vector<double>> inverse_matrix; 
-    std::vector<double> b_opt;
-    std::vector<std::pair<double, double>> b_range; //restrictions right rand
-    std::vector<std::pair<double, double>> c_range; // obj_func coefs
     double obj_value;
-    std::vector<double> solution_primal;
-    std::vector<double> solution_dual;
 
-    std::vector<double> original_coef;
-    std::vector<double> non_basic_coef;
 
     solver_func solver;
 
@@ -72,10 +64,20 @@ private:
     Table tableau;
     Table solution_tableau;
 
-    //infos derivadas do tableau final original modificado (para analise de sensibilidade )
+    std::vector<double> solution_primal;
+    std::vector<double> solution_dual;
 
+    // infos recalculadas a cada analise
 
+    std::vector<double> b_opt;      // analise
+    std::vector<std::pair<double, double>> b_range; //restrictions right rand
+    std::vector<std::pair<double, double>> c_range; // obj_func coefs
 
+    std::vector<int> I_index;    // analise
+    std::vector<std::vector<double>> inverse_matrix;    // analise
+
+    std::vector<double> original_coef;    // analise
+    std::vector<double> non_basic_coef;    // analise
 
 
     void vec_multiply_scalar(std::vector<double> & vec, double scalar);

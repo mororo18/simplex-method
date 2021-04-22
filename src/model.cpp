@@ -8,6 +8,28 @@ Model::Model(solver_func func, int qnt){
     main_func = nullptr;
 }
 
+Model::~Model(){
+    solution_primal.clear();
+    solution_dual.clear();
+
+    delete main_func;
+
+    cstr_vec.clear();
+    cstr_vec_new.clear();
+
+    tableau.clear();
+    solution_tableau.clear();
+
+    b_opt.clear();
+    b_range.clear();
+    c_range.clear();
+    I_index.clear();
+    inverse_matrix.clear();
+
+    original_coef.clear();
+    non_basic_coef.clear();
+}
+
 void Model::def(std::string model_type){
     /*
         max -> 1
@@ -58,11 +80,9 @@ void Model::analyse_add(cstr cstr_new){
         exit(0);
     }
 
-    vec_print_dbl(cstr_new.exp_coef);
     //exit(0);
 
     cstr_vec_new.push_back(cstr_new); 
-    vec_print_dbl(cstr_vec_new[0].exp_coef);
 }
 
 void Model::vec_multiply_scalar(std::vector<double> & vec, double scalar){
@@ -102,13 +122,8 @@ void Model::tableau_generate(){
     // store the original coef value
     original_coef = main_func->coef_get();
 
-    //std::vector<double> vec = main_func->coef_get();
     // insert the first row
     tableau.push_back(original_coef);
-
-    //for(int i = 0; i < vec.size(); i++)
-        //std::cout << vec[i] << " ";
-    //exit(0);
 
     int slack_cols = 0;
 
@@ -212,18 +227,28 @@ void Model::non_basic_coef_get(){
 }
 
 void Model::solution_primal_get(){
+    if(!solution_primal.empty())
+        solution_primal.clear();
+
     const int s_col = tableau[0].size() - 1;
+    
     for(int i = 0; i < var_qnt; i++){
-        for(int j = 1; j < tableau.size(); j++){
-            if(tableau[j][i] == 1)
-                solution_primal.push_back(tableau[j][s_col]);
-        }
+        if(tableau[0][i] == 0){
+            for(int j = 1; j < tableau.size(); j++){
+                if(tableau[j][i] == 1)
+                    solution_primal.push_back(tableau[j][s_col]);
+            }
+        }else
+            solution_primal.push_back(0);
     }
 
     obj_value = std::abs(tableau[0][s_col]);
 }
 
 void Model::solution_dual_get(){
+    if(!solution_dual.empty())
+        solution_dual.clear();
+        
     inverse_matrix_get();
     non_basic_coef_get();
     
@@ -232,6 +257,9 @@ void Model::solution_dual_get(){
         for(int j = 0; j < inverse_matrix.size(); j++){
             sum += non_basic_coef[j] * inverse_matrix[j][i]; 
         }
+
+        if(sum < DBL_EPSILON && sum > -DBL_EPSILON)
+            sum = 0;
 
         solution_dual.push_back(sum);
     }
@@ -249,6 +277,9 @@ void Model::b_opt_store(){
 
 void Model::b_range_calc(){
     b_opt_store();    
+    
+    if(!b_range.empty())
+        b_range.clear();
 
     for(int col = 0; col < inverse_matrix[0].size(); col++){
         double upper_bound = INFINITE; 
@@ -281,6 +312,10 @@ void Model::b_range_calc(){
 }
 
 void Model::c_range_calc(){
+    
+    if(!c_range.empty())
+        c_range.clear();
+
     for(int col = 0; col < var_qnt; col++){
         if(tableau[0][col] > 0){
             std::pair<double, double> range = std::make_pair(-INFINITE, tableau[0][col]);
@@ -341,7 +376,6 @@ void Model::tableau_resize(cstr cstr_new){
     int row_size = tableau[0].size();
     // add new row
     std::vector<double> row_new = cstr_new.exp_coef;
-    vec_print_dbl(row_new);
 
     if(cstr_new.type_id == G_EQ){
         for(int row = var_qnt; row < tableau[0].size(); row++)
@@ -357,6 +391,7 @@ void Model::tableau_resize(cstr cstr_new){
             tableau[row].insert(tableau[row].begin() + col_i, 0);
             tableau[row].insert(tableau[row].begin() + col_i, 0);
         }
+
     }else { 
         for(int row = var_qnt; row < tableau[0].size(); row++)
             row_new.push_back(0); 
@@ -369,6 +404,9 @@ void Model::tableau_resize(cstr cstr_new){
         for(int row = 0; row < tableau.size(); row++)
             tableau[row].insert(tableau[row].begin() + col_i, 0);
     }
+
+    // update I_index vec
+    I_index.push_back(tableau[0].size() - 2);
 
     if(cstr_new.type_id == G_EQ || cstr_new.type_id == EQ)
         vec_add_vec(tableau[0], row_new, -BIG_M);
@@ -403,23 +441,36 @@ void Model::tableau_resize(cstr cstr_new){
 
 void Model::analyse_reopt(){
     if(cstr_vec_new.empty()){
-        std::cout << "No constraints added to re-optimal analysis" << std::endl;
+        std::cout << "No constraints added for re-optimal analysis" << std::endl;
         exit(0);
     }else
         tableau = solution_tableau;
 
     for(int i = 0; i < cstr_vec_new.size(); i++){
         tableau_resize(cstr_vec_new[i]);
-        vec_print_dbl(cstr_vec_new[i].exp_coef);
         //exit(0);
     }
 
     tableau_print();
 
+        //exit(0);
     solver(tableau);
+
+        //exit(0);
+    
+    solution_primal_get();
+        //exit(0);
+    solution_dual_get();
+        //exit(0);
+
+    std::cout << "\n\n";
+    std::cout << "Funcao objetivo : " << obj_value_get() << std::endl; 
+    std::cout << "Solucao primal : "; vec_print_dbl(solution_primal);
+    std::cout << "Solucao dual : ";vec_print_dbl(solution_dual);
 
     // right hand
     b_range_calc();
+        //exit(0);
     c_range_calc();
 }
 
@@ -445,12 +496,14 @@ Table Model::tableau_get(){
 }
 
 void Model::tableau_print(){
+    std::cout << "aqui\n";
     for(int i = 0; i < tableau.size(); i++){
         for(int j = 0; j < tableau[i].size(); j++){
             std::cout << tableau[i][j] << " ";
         }
         std::cout << std::endl;
     }
+    std::cout << "aqui\n";
 }
 
 int Model::n_var_get(){

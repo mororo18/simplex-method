@@ -186,9 +186,10 @@ int main(){
         model.analyse_reopt();
         model.tableau_print();
 
+        //exit(0);
 
-        std::cout << std::endl;
-        std::cout << std::endl;
+        //std::cout << std::endl;
+        //std::cout << std::endl;
 
     }
 /*
