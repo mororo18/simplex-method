@@ -41,6 +41,7 @@ public:
     int size();
     void analyse();   // analise
     void solve();
+    std::string output_generate();
     void print();
     double obj_value_get();
     void b_opt_store();   // analise

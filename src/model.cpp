@@ -466,45 +466,74 @@ void Model::analyse_reopt(){
     c_range_calc();
 }
 
-/*
-void output_generate(){
+std::string Model::output_generate(){
+    std::string output;
     
     char header[200];
-
     sprintf(header, "========= MODEL =========\n" 
-            "\nN_o vars = %d\n" 
-            "\n%s ", var_qnt, type.c_str());
-            main_func->print();
+                    "\nN_o vars = %d\n" 
+                    "\n%s ", var_qnt, type.c_str());
 
-    printf("\nConstraints :\n");
+    output = header;
+
+    // append de O.F.
+    output.append(main_func->output_generate());
+
+    output.append("\nConstraints :\n");
+
     for(int i = 0; i < cstr_vec.size(); i++){
         std::vector<double> coef_vec = cstr_vec[i].exp_coef;
-        printf("  (%d) ", i);
+        char cstr_n[20];
+        sprintf(cstr_n, "  (%d) ", i);
+        output.append(cstr_n);
+
+        std::string opt1;
+        std::string opt2;
+        std::string opt3;
         for(int j = 0; j < coef_vec.size(); j++){
+            std::stringstream coef_stream;
+            coef_stream << std::setprecision(3) << coef_vec[j];
+
+            std::string coef_str = coef_stream.str();
+
+            opt1 = " " + coef_str + " " + main_func->var_name_get(j);
+            opt2 = " + " + coef_str + " " + main_func->var_name_get(j);
+            opt3 = coef_str + " " + main_func->var_name_get(j);
+
             if(coef_vec[j] < 0)
-                std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
+                output.append(opt1);
+                //std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
             else if(j != 0)
-                std::cout << " + " << coef_vec[j] << " " << main_func->var_name_get(j);
+                output.append(opt2);
+               //std::cout << " + " << coef_vec[j] << " " << main_func->var_name_get(j);
             else
-                std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
+                output.append(opt3);
+                //std::cout << " " << coef_vec[j] << " " << main_func->var_name_get(j);
 
         }
 
         if(cstr_vec[i].type_id == EQ)
-            std::cout << " = ";
+            output.append(" = ");
+            //std::cout << " = ";
         else if(cstr_vec[i].type_id == L_EQ)
-            std::cout << " <= ";
+            output.append(" <= ");
+            //std::cout << " <= ";
         else if(cstr_vec[i].type_id == G_EQ)
-            std::cout << " >= ";
+            output.append(" >= ");
+            //std::cout << " >= ";
 
         double value = cstr_vec[i].value;
-        std::cout  << value << std::endl;
+        //std::cout  << value << std::endl;
+        std::stringstream value_stream;
+        value_stream << std::setprecision(3) << value;
+
+        output.append(value_stream.str() + "\n");
         
     }
-
+    
+    return output;
 }
 
-*/
 void Model::solve(){
     tableau_generate();
     solver(tableau);
@@ -546,6 +575,7 @@ int Model::size(){
 }
 
 void Model::print(){
+/*
 
     printf("========= MODEL =========\n" 
             "\nN_o vars = %d\n" 
@@ -577,6 +607,9 @@ void Model::print(){
         std::cout  << value << std::endl;
         
     }
+    */
+
+    std::cout << output_generate();
 
 }
 
@@ -663,7 +696,6 @@ std::string Model::obj_func::output_generate(){
     //std::cout << output;
 
     return output;
-
 }
 
 void Model::obj_func::print(){
