@@ -41,8 +41,10 @@ public:
     int size();
     void analyse();   // analise
     void solve();
-    std::string output_generate();
-    std::string output_mod_generate();
+    void output_generate();
+    void output_mod_generate();
+    std::string output_get();
+    std::string output_mod_get();
     void print();
     void print_mod();
     double obj_value_get();

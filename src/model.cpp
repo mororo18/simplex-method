@@ -23,14 +23,28 @@ Model::~Model(){
     tableau.clear();
     solution_tableau.clear();
 
+    solution_primal.clear();
+    solution_primal_mod.clear();
+    solution_dual.clear();
+    solution_dual_mod.clear();
+
     b_opt.clear();
     b_range.clear();
+    b_range_mod.clear();
     c_range.clear();
+    c_range_mod.clear();
     I_index.clear();
     inverse_matrix.clear();
 
     original_coef.clear();
     non_basic_coef.clear();
+
+    output_model.clear();
+    output_model_mod.clear();
+    output_solution.clear();
+    output_solution_mod.clear();
+    output_analysis.clear();
+    output_analysis_mod.clear();
 }
 
 void Model::def(std::string model_type){
@@ -455,21 +469,18 @@ void Model::analyse_reopt(){
     obj_value_mod = obj_value_get();
     solution_primal_get(solution_primal_mod);
     solution_dual_get(solution_dual_mod);
-    /*
-
-    std::cout << "\n\n";
-    std::cout << "Funcao objetivo : " << obj_value_get() << std::endl; 
-    std::cout << "Solucao primal : "; vec_print_dbl(solution_primal);
-    std::cout << "Solucao dual : ";vec_print_dbl(solution_dual);
-    */
 
     // right hand
     b_range_calc(b_range_mod);
     c_range_calc(c_range_mod);
     analysed_mod = true;
+    output_mod_generate();
 }
 
-std::string Model::output_generate(){
+void Model::output_generate(){
+
+    // =========== Model output ============
+
     std::string output;
     
     char header[200];
@@ -532,7 +543,7 @@ std::string Model::output_generate(){
 
     output.clear();
 
-    std::string output_solution;
+    // ========== OPT soluiton output ==========
     if(solved){
         std::string output;
 
@@ -569,7 +580,7 @@ std::string Model::output_generate(){
         output_solution = output;
     }
 
-    //output.clear();
+    // ========= Analysis output =========
 
     if(analysed){
         std::string output;
@@ -651,16 +662,13 @@ std::string Model::output_generate(){
 
         output_analysis = output;
     }
-
-    //output.append(output_solution);
-    //output.append(output_analysis);
-    
-    return output_model + output_solution + output_analysis;
 }
 
-std::string Model::output_mod_generate(){
-
+void Model::output_mod_generate(){
     if(analysed_mod){
+
+        // ======== mod model output ===========
+
         std::string output = output_model;
         char * mod = " MOD";
 
@@ -714,7 +722,8 @@ std::string Model::output_mod_generate(){
         output_model_mod = output;
         output.clear();
 
-        // optimal soluiton
+
+        //  ========== mod optimal soluiton output ==========
 
         output.append("\n\n[*] OPTIMAL SOLUTION:\n\n > O.F. value = ");
 
@@ -750,7 +759,7 @@ std::string Model::output_mod_generate(){
 
         output.clear();
 
-        // =========
+        // ========= Mod analysis output =========
 
         output.append("\n\n[@] MOD SENSITIVITY ANALYSIS:\n\n");
         
@@ -832,7 +841,6 @@ std::string Model::output_mod_generate(){
         output_analysis_mod = output;
     }
 
-    return output_model_mod + output_solution_mod + output_analysis_mod;
 }
 
 void Model::solve(){
@@ -843,13 +851,9 @@ void Model::solve(){
     obj_value = obj_value_get();
     solution_primal_get(solution_primal);
     solution_dual_get(solution_dual);
-    /*
-    std::cout << "\n\n";
-    std::cout << "Funcao objetivo : " << obj_value_get() << std::endl; 
-    std::cout << "Solucao primal : "; vec_print_dbl(solution_primal);
-    std::cout << "Solucao dual : ";vec_print_dbl(solution_dual);
-    */
     solved = true;
+
+    output_generate();
 }
 
 double Model::obj_value_get(){
@@ -882,13 +886,23 @@ int Model::size(){
     return cstr_vec.size();
 }
 
+std::string Model::output_get(){
+    return output_model + output_solution + output_analysis;
+}
+
+std::string Model::output_mod_get(){
+    return output_model_mod + output_solution_mod + output_analysis_mod;
+}
+
 void Model::print(){
-    std::cout << output_generate();
+    std::cout << output_get();
 }
 
 void Model::print_mod(){
-    std::cout << output_mod_generate();
+    std::cout << output_mod_get();
 }
+
+/* ======== FUNCS FROM OBJ_FUNC CLASS ========*/
 
 Model::obj_func::obj_func(int qnt){
     var_qnt = qnt;
@@ -979,14 +993,17 @@ void Model::obj_func::print(){
     std::cout << output_generate();
 }
 
-/*
-    0 -> eq
-    1 -> leq
-   -1 -> geq
-*/
+
+/* ======== FUNCS FROM CSTR CLASS ========*/
 
 void Model::cstr::type_def(cstr_t tp){
     
+    /*
+       0 -> eq
+       1 -> leq
+       -1 -> geq
+     */
+
     if(!tp.compare("eq")){
         type = tp;
         type_id = 0;
