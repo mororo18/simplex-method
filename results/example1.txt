@@ -1,0 +1,44 @@
+
+========= MODEL =========
+
+ N_o vars = 2
+
+ min Z = 0.4 X_1 + 0.5 X_2
+
+ [s.t.] Constraints :
+
+    (0) 0.3 X_1 + 0.1 X_2 <= 2.7
+    (1) 0.5 X_1 + 0.5 X_2 = 6
+    (2) 0.6 X_1 + 0.4 X_2 >= 6
+
+
+[*] OPTIMAL SOLUTION:
+
+ > O.F. value = 5.25
+
+ Primal Variables:
+
+   > X_1 = 7.5;
+   > X_2 = 4.5;
+
+ Dual Variables:
+
+   > Y_1 = 0.5;
+   > Y_2 = -1.1;
+   > Y_3 = 0;
+
+
+[@] SENSITIVITY ANALYSIS:
+
+ > Ranges for unchange the Basis: 
+
+		 > OBJ Coefficient Ranges <
+   Variables	Crnt Coef	Alwb Inc.	Alwb Dec.
+   > X_1	0.4		0.1		INFINITY
+   > X_2	0.5		INFINITY	0.1
+
+		     > Right Hand Side <
+   Constraint	Crnt RHS	Alwb Inc.	Alwb Dec.
+   > (0)	2.7		0.9		0.3
+   > (1)	6		7.5		0.5
+   > (2)	6		0.3		INFINITY

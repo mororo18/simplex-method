@@ -1,0 +1,47 @@
+
+========= MOD MODEL =========
+
+ N_o vars = 2
+
+ max Z = 3 X_1 + 5 X_2
+
+ [s.t.] Constraints :
+
+    (0) 1 X_1 + 0 X_2 <= 4
+    (1) 0 X_1 + 2 X_2 <= 24
+    (2) 3 X_1 + 2 X_2 <= 18
+    (3) 2 X_1 + 3 X_2 <= 24
+
+
+[*] OPTIMAL SOLUTION:
+
+ > O.F. value = 40
+
+ Primal Variables:
+
+   > X_1 = 0;
+   > X_2 = 8;
+
+ Dual Variables:
+
+   > Y_1 = 0;
+   > Y_2 = 0;
+   > Y_3 = 0;
+   > Y_4 = 1.67;
+
+
+[@] MOD SENSITIVITY ANALYSIS:
+
+ > Ranges for unchange the Basis: 
+
+		 > OBJ Coefficient Ranges <
+   Variables	Crnt Coef	Alwb Inc.	Alwb Dec.
+   > X_1	3		0.333		INFINITY
+   > X_2	5		INFINITY	0.5
+
+		     > Right Hand Side <
+   Constraint	Crnt RHS	Alwb Inc.	Alwb Dec.
+   > (0)	4		INFINITY	4
+   > (1)	24		INFINITY	8
+   > (2)	18		INFINITY	2
+   > (3)	24		3		24

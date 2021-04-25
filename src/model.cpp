@@ -379,6 +379,8 @@ void Model::analyse(){
     c_range_calc(c_range);
 
     analysed = true;
+
+    output_generate();
 }
 
 void Model::tableau_resize(cstr cstr_new){
@@ -895,18 +897,22 @@ std::string Model::output_mod_get(){
 }
 
 void Model::print(){
+    output_generate();
     std::cout << output_get();
 }
 
 void Model::print_mod(){
+    output_mod_generate();
     std::cout << output_mod_get();
 }
 
 void Model::print_model(){
+    output_generate();
     std::cout << output_model;
 }
 
 void Model::print_model_mod(){
+    output_mod_generate();
     std::cout << output_model_mod;
 
 }

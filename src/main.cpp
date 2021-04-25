@@ -1,3 +1,4 @@
+#include <fstream>
 #include "simplex.h"
 #include "model.h"
 
@@ -78,19 +79,28 @@ int main(){
         model.cstr_add(cstr_02);
         model.cstr_add(cstr_03);
 
-        model.print();
+        model.print_model();
 
         //model.tableau_print();
         model.solve();
-        std::cout << std::endl;
+        model.print_solution();
 
         model.analyse();
+
+        model.print_analysis();
+
+        //model.print();
         //model.tableau_print();
 
+        const char * f_name = "results/example1.txt";
+        std::ofstream file {f_name};
 
-        std::cout << std::endl;
-        std::cout << std::endl;
-
+        std::ofstream o_file;
+        o_file.open(f_name, std::ios::in );
+        if(file.is_open()){
+            o_file << model.output_get();
+            o_file.close();
+        }
     }
 
     /* =========== MODEL 02 ============*/
@@ -183,15 +193,28 @@ int main(){
         //model.tableau_print();
 
         model.analyse_reopt();
-        model.print();
-        model.print_mod();
+        //model.print();
+        //model.print_mod();
         //model.tableau_print();
 
-        //exit(0);
+        const char * f_name = "results/example2.txt";
+        const char * f_name_mod = "results/example2_mod.txt";
+        
+        std::ofstream file {f_name};
+        std::ofstream file_mod {f_name_mod};
 
-        //std::cout << std::endl;
-        //std::cout << std::endl;
+        std::ofstream o_file;
+        o_file.open(f_name, std::ios::in );
+        if(file.is_open()){
+            o_file << model.output_get();
+            o_file.close();
+        }
 
+        o_file.open(f_name_mod, std::ios::in );
+        if(file.is_open()){
+            o_file << model.output_mod_get();
+            o_file.close();
+        }
     }
 /*
     Tableau tableau = 

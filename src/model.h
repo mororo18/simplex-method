@@ -15,7 +15,7 @@
 #define L_EQ 1 
 #define G_EQ -1 
 
-#define OUT_PRECISION 4
+#define OUT_PRECISION 3
 
 typedef std::vector<std::vector<double>> Table;
 typedef void (*solver_func)(Table & tableau);
@@ -81,8 +81,8 @@ private:
     // infos recalculadas a cada analise
 
     std::vector<double> b_opt;                              // right hand of the final tableau
-    std::vector<std::pair<double, double>> b_range;         //restrictions right rand
-    std::vector<std::pair<double, double>> b_range_mod;     //restrictions right rand
+    std::vector<std::pair<double, double>> b_range;         //restrictions right hand
+    std::vector<std::pair<double, double>> b_range_mod;     //restrictions right hand
     std::vector<std::pair<double, double>> c_range;         // obj_func coefs
     std::vector<std::pair<double, double>> c_range_mod;     // obj_func coefs
 
