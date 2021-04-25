@@ -15,6 +15,8 @@
 #define L_EQ 1 
 #define G_EQ -1 
 
+#define OUT_PRECISION 4
+
 typedef std::vector<std::vector<double>> Table;
 typedef void (*solver_func)(Table & tableau);
 
@@ -62,7 +64,7 @@ private:
     bool analysed;                                          // "
     bool analysed_mod;                                      // "
 
-    solver_func solver;                                     // pointer to solver func
+    solver_func solver;                                     // pointer to solver's main func
 
     obj_func * main_func;                                   // OF
     std::vector<cstr> cstr_vec;
@@ -103,17 +105,17 @@ private:
     void vec_print_dbl(std::vector<double> vec);
 
     void tableau_generate();
-    void inverse_matrix_get();  // analise
-    void basic_coef_get();   // analise
+    void inverse_matrix_store();  
+    void basic_coef_get();   
     void solution_primal_get(std::vector<double> & solution_primal);
     void solution_dual_get(std::vector<double> & solution_dual);
     void output_generate();
     void output_mod_generate();
 
-    void b_opt_store();   // analise
+    void b_opt_store();   
     void b_range_calc(std::vector<std::pair<double, double>> & b_range);    // analise
     void c_range_calc(std::vector<std::pair<double, double>> & c_range);    // analise
-    void tableau_resize(cstr cstr_new);   // analise
+    void tableau_resize(cstr cstr_new);   
 };
 
 class Model::obj_func {

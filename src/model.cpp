@@ -203,7 +203,7 @@ void Model::tableau_generate(){
 
 }
 
-void Model::inverse_matrix_get(){
+void Model::inverse_matrix_store(){
     inverse_matrix = std::vector<std::vector<double>> (I_index.size(), std::vector<double> (I_index.size()));
 
     for(int i = 0; i < I_index.size(); i++){
@@ -252,7 +252,7 @@ void Model::solution_dual_get(std::vector<double> & solution_dual){
     if(!solution_dual.empty())
         solution_dual.clear();
         
-    inverse_matrix_get();
+    inverse_matrix_store();
     basic_coef_get();
     
     for(int i = 0; i < inverse_matrix.size(); i++){
@@ -507,7 +507,7 @@ void Model::output_generate(){
         std::string opt3;
         for(int j = 0; j < coef_vec.size(); j++){
             std::stringstream coef_stream;
-            coef_stream << std::setprecision(3) << coef_vec[j];
+            coef_stream << std::setprecision(OUT_PRECISION) << coef_vec[j];
 
             std::string coef_str = coef_stream.str();
 
@@ -533,7 +533,7 @@ void Model::output_generate(){
 
         double value = cstr_vec[i].value;
         std::stringstream value_stream;
-        value_stream << std::setprecision(3) << value;
+        value_stream << std::setprecision(OUT_PRECISION) << value;
 
         output.append(value_stream.str() + "\n");
         
@@ -550,7 +550,7 @@ void Model::output_generate(){
         output.append("\n\n[*] OPTIMAL SOLUTION:\n\n > O.F. value = ");
 
         std::stringstream obj_value_stream;
-        obj_value_stream << std::setprecision(3) << obj_value;
+        obj_value_stream << std::setprecision(OUT_PRECISION) << obj_value;
 
         output.append(obj_value_stream.str() + "\n");
 
@@ -561,7 +561,7 @@ void Model::output_generate(){
             output.append(main_func->var_name_get(i) + " = ");
             
             std::stringstream var_value_stream;
-            var_value_stream << std::setprecision(3) << solution_primal[i];
+            var_value_stream << std::setprecision(OUT_PRECISION) << solution_primal[i];
             output.append(var_value_stream.str() + ";\n");
 
         }
@@ -572,7 +572,7 @@ void Model::output_generate(){
             output.append("   > Y_" + std::to_string(i+1) + " = ");
             
             std::stringstream var_value_stream;
-            var_value_stream << std::setprecision(3) << solution_dual[i];
+            var_value_stream << std::setprecision(OUT_PRECISION) << solution_dual[i];
             output.append(var_value_stream.str() + ";\n");
 
         }
@@ -599,9 +599,9 @@ void Model::output_generate(){
             std::string upper_str;
             std::string lower_str;
 
-            coef_stream << std::setprecision(3) << original_coef[i];
-            upper_bd_stream << std::setprecision(3) << std::abs(c_range[i].second);
-            lower_bd_stream << std::setprecision(3) << std::abs(c_range[i].first);
+            coef_stream << std::setprecision(OUT_PRECISION) << original_coef[i];
+            upper_bd_stream << std::setprecision(OUT_PRECISION) << std::abs(c_range[i].second);
+            lower_bd_stream << std::setprecision(OUT_PRECISION) << std::abs(c_range[i].first);
 
             coef_str = coef_stream.str();
 
@@ -633,9 +633,9 @@ void Model::output_generate(){
             std::string upper_str;
             std::string lower_str;
 
-            hand_stream << std::setprecision(3) << cstr_vec[i].value;
-            upper_bd_stream << std::setprecision(3) << std::abs(b_range[i].second);
-            lower_bd_stream << std::setprecision(3) << std::abs(b_range[i].first);
+            hand_stream << std::setprecision(OUT_PRECISION) << cstr_vec[i].value;
+            upper_bd_stream << std::setprecision(OUT_PRECISION) << std::abs(b_range[i].second);
+            lower_bd_stream << std::setprecision(OUT_PRECISION) << std::abs(b_range[i].first);
 
             hand_str = hand_stream.str();
 
@@ -687,7 +687,7 @@ void Model::output_mod_generate(){
             std::string opt3;
             for(int j = 0; j < coef_vec.size(); j++){
                 std::stringstream coef_stream;
-                coef_stream << std::setprecision(3) << coef_vec[j];
+                coef_stream << std::setprecision(OUT_PRECISION) << coef_vec[j];
 
                 std::string coef_str = coef_stream.str();
 
@@ -713,7 +713,7 @@ void Model::output_mod_generate(){
 
             double value = cstr_vec_new[i].value;
             std::stringstream value_stream;
-            value_stream << std::setprecision(3) << value;
+            value_stream << std::setprecision(OUT_PRECISION) << value;
 
             output.append(value_stream.str() + "\n");
 
@@ -728,7 +728,7 @@ void Model::output_mod_generate(){
         output.append("\n\n[*] OPTIMAL SOLUTION:\n\n > O.F. value = ");
 
         std::stringstream obj_value_stream;
-        obj_value_stream << std::setprecision(3) << obj_value_mod;
+        obj_value_stream << std::setprecision(OUT_PRECISION) << obj_value_mod;
 
         output.append(obj_value_stream.str() + "\n");
 
@@ -739,7 +739,7 @@ void Model::output_mod_generate(){
             output.append(main_func->var_name_get(i) + " = ");
             
             std::stringstream var_value_stream;
-            var_value_stream << std::setprecision(3) << solution_primal_mod[i];
+            var_value_stream << std::setprecision(OUT_PRECISION) << solution_primal_mod[i];
             output.append(var_value_stream.str() + ";\n");
 
         }
@@ -750,7 +750,7 @@ void Model::output_mod_generate(){
             output.append("   > Y_" + std::to_string(i+1) + " = ");
             
             std::stringstream var_value_stream;
-            var_value_stream << std::setprecision(3) << solution_dual_mod[i];
+            var_value_stream << std::setprecision(OUT_PRECISION) << solution_dual_mod[i];
             output.append(var_value_stream.str() + ";\n");
 
         }
@@ -775,9 +775,9 @@ void Model::output_mod_generate(){
             std::string upper_str;
             std::string lower_str;
 
-            coef_stream << std::setprecision(3) << original_coef[i];
-            upper_bd_stream << std::setprecision(3) << std::abs(c_range_mod[i].second);
-            lower_bd_stream << std::setprecision(3) << std::abs(c_range_mod[i].first);
+            coef_stream << std::setprecision(OUT_PRECISION) << original_coef[i];
+            upper_bd_stream << std::setprecision(OUT_PRECISION) << std::abs(c_range_mod[i].second);
+            lower_bd_stream << std::setprecision(OUT_PRECISION) << std::abs(c_range_mod[i].first);
 
             coef_str = coef_stream.str();
 
@@ -811,9 +811,9 @@ void Model::output_mod_generate(){
             std::string upper_str;
             std::string lower_str;
 
-            hand_stream << std::setprecision(3) << cstr_vec_mod[i].value;
-            upper_bd_stream << std::setprecision(3) << std::abs(b_range_mod[i].second);
-            lower_bd_stream << std::setprecision(3) << std::abs(b_range_mod[i].first);
+            hand_stream << std::setprecision(OUT_PRECISION) << cstr_vec_mod[i].value;
+            upper_bd_stream << std::setprecision(OUT_PRECISION) << std::abs(b_range_mod[i].second);
+            lower_bd_stream << std::setprecision(OUT_PRECISION) << std::abs(b_range_mod[i].first);
 
             hand_str = hand_stream.str();
 
@@ -989,7 +989,7 @@ std::string Model::obj_func::output_generate(){
 
     for(int i = 0; i < coef.size(); i++){
         std::stringstream coef_stream;
-        coef_stream << std::setprecision(3) << coef[i];
+        coef_stream << std::setprecision(OUT_PRECISION) << coef[i];
 
         std::string coef_str = coef_stream.str();
 
