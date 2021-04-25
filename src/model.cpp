@@ -216,7 +216,7 @@ void Model::non_basic_coef_get(){
     //vec_print_dbl(non_basic_coef);
 }
 
-void Model::solution_primal_get(){
+void Model::solution_primal_get(std::vector<double> & solution_primal){
     if(!solution_primal.empty())
         solution_primal.clear();
 
@@ -232,10 +232,9 @@ void Model::solution_primal_get(){
             solution_primal.push_back(0);
     }
 
-    obj_value = std::abs(tableau[0][s_col]);
 }
 
-void Model::solution_dual_get(){
+void Model::solution_dual_get(std::vector<double> & solution_dual){
     if(!solution_dual.empty())
         solution_dual.clear();
         
@@ -265,7 +264,7 @@ void Model::b_opt_store(){
     
 }
 
-void Model::b_range_calc(){
+void Model::b_range_calc(std::vector<std::pair<double, double>> & b_range){
     b_opt_store();    
     
     if(!b_range.empty())
@@ -297,11 +296,11 @@ void Model::b_range_calc(){
 
         b_range.push_back(range);
 
-        std::cout << "cstr n" << col << "  de " << lower_bound << " a " << upper_bound << std::endl;
+        //std::cout << "cstr n" << col << "  de " << lower_bound << " a " << upper_bound << std::endl;
     }
 }
 
-void Model::c_range_calc(){
+void Model::c_range_calc(std::vector<std::pair<double, double>> & c_range){
     
     if(!c_range.empty())
         c_range.clear();
@@ -309,7 +308,7 @@ void Model::c_range_calc(){
     for(int col = 0; col < var_qnt; col++){
         if(tableau[0][col] > 0){
             std::pair<double, double> range = std::make_pair(-INFINITE, tableau[0][col]);
-            std::cout << "var X_" << col << "  de " << -INFINITE << " a " << tableau[0][col] << std::endl;
+            //std::cout << "var X_" << col << "  de " << -INFINITE << " a " << tableau[0][col] << std::endl;
             c_range.push_back(range);
         }else if(tableau[0][col] == 0){
             int row_i;
@@ -345,7 +344,7 @@ void Model::c_range_calc(){
             }
 
             std::pair<double, double> range = std::make_pair(lower_bound, upper_bound);
-            std::cout << "var X_" << col << "  de " << lower_bound << " a " << upper_bound << std::endl;
+            //std::cout << "var X_" << col << "  de " << lower_bound << " a " << upper_bound << std::endl;
 
             c_range.push_back(range);
             
@@ -362,8 +361,8 @@ void Model::analyse(){
     tableau = solution_tableau;
 
     // right hand
-    b_range_calc();
-    c_range_calc();
+    b_range_calc(b_range);
+    c_range_calc(c_range);
 
     analysed = true;
 }
@@ -453,17 +452,20 @@ void Model::analyse_reopt(){
     //tableau_print();
     solver(tableau);
     
-    solution_primal_get();
-    solution_dual_get();
+    obj_value_mod = obj_value_get();
+    solution_primal_get(solution_primal_mod);
+    solution_dual_get(solution_dual_mod);
+    /*
 
     std::cout << "\n\n";
     std::cout << "Funcao objetivo : " << obj_value_get() << std::endl; 
     std::cout << "Solucao primal : "; vec_print_dbl(solution_primal);
     std::cout << "Solucao dual : ";vec_print_dbl(solution_dual);
+    */
 
     // right hand
-    b_range_calc();
-    c_range_calc();
+    b_range_calc(b_range_mod);
+    c_range_calc(c_range_mod);
     analysed_mod = true;
 }
 
@@ -471,7 +473,7 @@ std::string Model::output_generate(){
     std::string output;
     
     char header[200];
-    sprintf(header, "========= MODEL =========\n" 
+    sprintf(header, "\n========= MODEL =========\n"
                     "\n N_o vars = %d\n" 
                     "\n %s ", var_qnt, type.c_str());
 
@@ -526,7 +528,14 @@ std::string Model::output_generate(){
         
     }
 
+    output_model = output;
+
+    output.clear();
+
+    std::string output_solution;
     if(solved){
+        std::string output;
+
         output.append("\n\n[*] OPTIMAL SOLUTION:\n\n > O.F. value = ");
 
         std::stringstream obj_value_stream;
@@ -557,9 +566,14 @@ std::string Model::output_generate(){
 
         }
         
+        output_solution = output;
     }
 
+    //output.clear();
+
     if(analysed){
+        std::string output;
+
         output.append("\n\n[@] SENSITIVITY ANALYSIS:\n\n");
         
         output.append(" > Ranges for unchange the Basis: \n\n");
@@ -597,31 +611,252 @@ std::string Model::output_generate(){
 
 
         }
+        output.append("\n\t\t     > Right Hand Side <\n");
+        output.append("   Constraint\tCrnt RHS\tAlwb Inc.\tAlwb Dec.\n");
+        for(int i = 0; i < cstr_vec.size(); i++){
+            std::stringstream hand_stream;
+            std::stringstream upper_bd_stream;
+            std::stringstream lower_bd_stream;
+
+            std::string hand_str;
+            std::string upper_str;
+            std::string lower_str;
+
+            hand_stream << std::setprecision(3) << cstr_vec[i].value;
+            upper_bd_stream << std::setprecision(3) << std::abs(b_range[i].second);
+            lower_bd_stream << std::setprecision(3) << std::abs(b_range[i].first);
+
+            hand_str = hand_stream.str();
+
+            char cstr_n[20]; 
+            sprintf(cstr_n, "(%d)", i);
+            std::string cstr_str = cstr_n;
+            if(std::abs(b_range[i].second) >= INFINITE - 2){
+                upper_str = "INFINITY";
+                output.append("   > " + cstr_str + "\t" + hand_str + "\t\t" + upper_str + "\t");
+            }else{
+                upper_str = upper_bd_stream.str();
+                output.append("   > " + cstr_str +  "\t" + hand_str + "\t\t" + upper_str + "\t\t");
+            }
+
+            if(std::abs(b_range[i].first) >= INFINITE - 2){
+                lower_str = "INFINITY";
+            }else
+                lower_str = lower_bd_stream.str();
+
+            output.append(lower_str + "\n");
+
+
+        }
+
+        output_analysis = output;
     }
+
+    //output.append(output_solution);
+    //output.append(output_analysis);
     
-    if(analysed_mod){
+    return output_model + output_solution + output_analysis;
+}
 
+std::string Model::output_mod_generate(){
+
+    if(analysed_mod){
+        std::string output = output_model;
+        char * mod = " MOD";
+
+        output.insert(10, mod);
+        int count = cstr_vec.size();
+
+        // append the new cstrs to the Model output string
+        for(int i = 0; i < cstr_vec_new.size(); i++){
+            std::vector<double> coef_vec = cstr_vec_new[i].exp_coef;
+            char cstr_n[20];
+            sprintf(cstr_n, "    (%d) ", count++);
+            output.append(cstr_n);
+
+            std::string opt1;
+            std::string opt2;
+            std::string opt3;
+            for(int j = 0; j < coef_vec.size(); j++){
+                std::stringstream coef_stream;
+                coef_stream << std::setprecision(3) << coef_vec[j];
+
+                std::string coef_str = coef_stream.str();
+
+                opt1 = " " + coef_str + " " + main_func->var_name_get(j);
+                opt2 = " + " + coef_str + " " + main_func->var_name_get(j);
+                opt3 = coef_str + " " + main_func->var_name_get(j);
+
+                if(coef_vec[j] < 0)
+                    output.append(opt1);
+                else if(j != 0)
+                    output.append(opt2);
+                else
+                    output.append(opt3);
+
+            }
+
+            if(cstr_vec_new[i].type_id == EQ)
+                output.append(" = ");
+            else if(cstr_vec_new[i].type_id == L_EQ)
+                output.append(" <= ");
+            else if(cstr_vec_new[i].type_id == G_EQ)
+                output.append(" >= ");
+
+            double value = cstr_vec_new[i].value;
+            std::stringstream value_stream;
+            value_stream << std::setprecision(3) << value;
+
+            output.append(value_stream.str() + "\n");
+
+        }
+
+        output_model_mod = output;
+        output.clear();
+
+        // optimal soluiton
+
+        output.append("\n\n[*] OPTIMAL SOLUTION:\n\n > O.F. value = ");
+
+        std::stringstream obj_value_stream;
+        obj_value_stream << std::setprecision(3) << obj_value_mod;
+
+        output.append(obj_value_stream.str() + "\n");
+
+        output.append("\n Primal Variables:\n\n");
+
+        for(int i = 0; i < solution_primal_mod.size(); i++){
+            output.append("   > ");
+            output.append(main_func->var_name_get(i) + " = ");
+            
+            std::stringstream var_value_stream;
+            var_value_stream << std::setprecision(3) << solution_primal_mod[i];
+            output.append(var_value_stream.str() + ";\n");
+
+        }
+        
+        output.append("\n Dual Variables:\n\n");
+
+        for(int i = 0; i < solution_dual_mod.size(); i++){
+            output.append("   > Y_" + std::to_string(i+1) + " = ");
+            
+            std::stringstream var_value_stream;
+            var_value_stream << std::setprecision(3) << solution_dual_mod[i];
+            output.append(var_value_stream.str() + ";\n");
+
+        }
+        
+        output_solution_mod = output;
+
+        output.clear();
+
+        // =========
+
+        output.append("\n\n[@] MOD SENSITIVITY ANALYSIS:\n\n");
+        
+        output.append(" > Ranges for unchange the Basis: \n\n");
+        output.append("\t\t > OBJ Coefficient Ranges <\n");
+        output.append("   Variables\tCrnt Coef\tAlwb Inc.\tAlwb Dec.\n");
+        for(int i = 0; i < var_qnt; i++){
+            std::stringstream coef_stream;
+            std::stringstream upper_bd_stream;
+            std::stringstream lower_bd_stream;
+
+            std::string coef_str;
+            std::string upper_str;
+            std::string lower_str;
+
+            coef_stream << std::setprecision(3) << original_coef[i];
+            upper_bd_stream << std::setprecision(3) << std::abs(c_range_mod[i].second);
+            lower_bd_stream << std::setprecision(3) << std::abs(c_range_mod[i].first);
+
+            coef_str = coef_stream.str();
+
+            if(std::abs(c_range_mod[i].second) >= INFINITE - 2){
+                upper_str = "INFINITY";
+                output.append("   > " + main_func->var_name_get(i) + "\t" + coef_str + "\t\t" + upper_str + "\t");
+            }else{
+                upper_str = upper_bd_stream.str();
+                output.append("   > " + main_func->var_name_get(i) +  "\t" + coef_str + "\t\t" + upper_str + "\t\t");
+            }
+
+            if(std::abs(c_range_mod[i].first) >= INFINITE - 2){
+                lower_str = "INFINITY";
+            }else
+                lower_str = lower_bd_stream.str();
+
+            output.append(lower_str + "\n");
+
+
+        }
+        std::vector<cstr> cstr_vec_mod = cstr_vec;
+        cstr_vec_mod.insert(cstr_vec_mod.end(), cstr_vec_new.begin(), cstr_vec_new.end());
+        output.append("\n\t\t     > Right Hand Side <\n");
+        output.append("   Constraint\tCrnt RHS\tAlwb Inc.\tAlwb Dec.\n");
+        for(int i = 0; i < cstr_vec_mod.size(); i++){
+            std::stringstream hand_stream;
+            std::stringstream upper_bd_stream;
+            std::stringstream lower_bd_stream;
+
+            std::string hand_str;
+            std::string upper_str;
+            std::string lower_str;
+
+            hand_stream << std::setprecision(3) << cstr_vec_mod[i].value;
+            upper_bd_stream << std::setprecision(3) << std::abs(b_range_mod[i].second);
+            lower_bd_stream << std::setprecision(3) << std::abs(b_range_mod[i].first);
+
+            hand_str = hand_stream.str();
+
+            char cstr_n[20]; 
+            sprintf(cstr_n, "(%d)", i);
+            std::string cstr_str = cstr_n;
+            if(std::abs(b_range_mod[i].second) >= INFINITE - 2){
+                upper_str = "INFINITY";
+                output.append("   > " + cstr_str + "\t" + hand_str + "\t\t" + upper_str + "\t");
+            }else{
+                upper_str = upper_bd_stream.str();
+                output.append("   > " + cstr_str +  "\t" + hand_str + "\t\t" + upper_str + "\t\t");
+            }
+
+            if(std::abs(b_range_mod[i].first) >= INFINITE - 2){
+                lower_str = "INFINITY";
+            }else
+                lower_str = lower_bd_stream.str();
+
+            output.append(lower_str + "\n");
+
+
+        }
+
+        output_analysis_mod = output;
     }
 
-    return output;
+    return output_model_mod + output_solution_mod + output_analysis_mod;
 }
 
 void Model::solve(){
     tableau_generate();
     solver(tableau);
     solution_tableau = tableau;
-
-    solution_primal_get();
-    solution_dual_get();
+    
+    obj_value = obj_value_get();
+    solution_primal_get(solution_primal);
+    solution_dual_get(solution_dual);
+    /*
     std::cout << "\n\n";
     std::cout << "Funcao objetivo : " << obj_value_get() << std::endl; 
     std::cout << "Solucao primal : "; vec_print_dbl(solution_primal);
     std::cout << "Solucao dual : ";vec_print_dbl(solution_dual);
+    */
     solved = true;
 }
 
 double Model::obj_value_get(){
-    return obj_value;
+    const int s_col = tableau[0].size() - 1;
+    double value = std::abs(tableau[0][s_col]);
+
+    return value;
 }
 
 Table Model::tableau_get(){
@@ -649,6 +884,10 @@ int Model::size(){
 
 void Model::print(){
     std::cout << output_generate();
+}
+
+void Model::print_mod(){
+    std::cout << output_mod_generate();
 }
 
 Model::obj_func::obj_func(int qnt){

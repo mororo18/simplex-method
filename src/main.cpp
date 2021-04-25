@@ -182,8 +182,9 @@ int main(){
         model.analyse();
         //model.tableau_print();
 
-        //model.analyse_reopt();
+        model.analyse_reopt();
         model.print();
+        model.print_mod();
         //model.tableau_print();
 
         //exit(0);
