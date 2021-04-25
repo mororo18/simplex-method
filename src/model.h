@@ -30,50 +30,46 @@ public:
     void def(std::string model_type);
     void func_add(obj_func func);
     void cstr_add(cstr constraint);
-    void tableau_generate();
     Table tableau_get();
     void tableau_print();
-    void inverse_matrix_get();  // analise
-    void non_basic_coef_get();   // analise
-    void solution_primal_get(std::vector<double> & solution_primal);
-    void solution_dual_get(std::vector<double> & solution_dual);
     int n_var_get();
     int size();
-    void analyse();   // analise
+    void analyse();   
     void solve();
-    void output_generate();
-    void output_mod_generate();
+    double obj_value_get();
+    void analyse_add(cstr cstr_new);    // analise
+    void analyse_reopt();     // analise
+
     std::string output_get();
     std::string output_mod_get();
     void print();
     void print_mod();
-    double obj_value_get();
-    void b_opt_store();   // analise
-    void b_range_calc(std::vector<std::pair<double, double>> & b_range);    // analise
-    void c_range_calc(std::vector<std::pair<double, double>> & c_range);    // analise
-    void tableau_resize(cstr cstr_new);   // analise
-    void analyse_add(cstr cstr_new);    // analise
-    void analyse_reopt();     // analise
+    void print_model();
+    void print_model_mod();
+    void print_solution();
+    void print_solution_mod();
+    void print_analysis();
+    void print_analysis_mod();
 
 private:
-    int var_qnt;
-    std::string type;
-    int type_id;
-    double obj_value;
-    double obj_value_mod;
+    int var_qnt;                                            // qnt of variables 
+    std::string type;                                       // type of problem ( max or min)
+    int type_id;                                            // numerical id
+    double obj_value;                                       // final OF value
+    double obj_value_mod;                                   // final mod OF value
 
-    bool solved;
-    bool analysed;
-    bool analysed_mod;
+    bool solved;                                            // flags
+    bool analysed;                                          // "
+    bool analysed_mod;                                      // "
 
-    solver_func solver;
+    solver_func solver;                                     // pointer to solver func
 
-    obj_func * main_func;
+    obj_func * main_func;                                   // OF
     std::vector<cstr> cstr_vec;
-    std::vector<cstr> cstr_vec_new;
+    std::vector<cstr> cstr_vec_new;                         // new constraints
 
     Table tableau;
-    Table solution_tableau;
+    Table solution_tableau;                                 // final tableau of the original model
 
     std::vector<double> solution_primal;
     std::vector<double> solution_primal_mod;
@@ -82,17 +78,17 @@ private:
 
     // infos recalculadas a cada analise
 
-    std::vector<double> b_opt;      // analise
-    std::vector<std::pair<double, double>> b_range; //restrictions right rand
-    std::vector<std::pair<double, double>> b_range_mod; //restrictions right rand
-    std::vector<std::pair<double, double>> c_range; // obj_func coefs
-    std::vector<std::pair<double, double>> c_range_mod; // obj_func coefs
+    std::vector<double> b_opt;                              // right hand of the final tableau
+    std::vector<std::pair<double, double>> b_range;         //restrictions right rand
+    std::vector<std::pair<double, double>> b_range_mod;     //restrictions right rand
+    std::vector<std::pair<double, double>> c_range;         // obj_func coefs
+    std::vector<std::pair<double, double>> c_range_mod;     // obj_func coefs
 
-    std::vector<int> I_index;    // analise
-    std::vector<std::vector<double>> inverse_matrix;    // analise
+    std::vector<int> I_index;                               // inicial identity matrix indexes
+    std::vector<std::vector<double>> inverse_matrix;        // solution matrix of final tableau
 
-    std::vector<double> original_coef;    // analise
-    std::vector<double> non_basic_coef;    // analise
+    std::vector<double> original_coef;                      // original OF coefs
+    std::vector<double> basic_coef;                         // original coef of the final basic variables
 
     std::string output_model;
     std::string output_model_mod;
@@ -105,6 +101,19 @@ private:
     void vec_multiply_scalar(std::vector<double> & vec, double scalar);
     void vec_add_vec(std::vector<double> & vec_a, const std::vector<double> & vec_b, double factor);
     void vec_print_dbl(std::vector<double> vec);
+
+    void tableau_generate();
+    void inverse_matrix_get();  // analise
+    void basic_coef_get();   // analise
+    void solution_primal_get(std::vector<double> & solution_primal);
+    void solution_dual_get(std::vector<double> & solution_dual);
+    void output_generate();
+    void output_mod_generate();
+
+    void b_opt_store();   // analise
+    void b_range_calc(std::vector<std::pair<double, double>> & b_range);    // analise
+    void c_range_calc(std::vector<std::pair<double, double>> & c_range);    // analise
+    void tableau_resize(cstr cstr_new);   // analise
 };
 
 class Model::obj_func {

@@ -37,7 +37,7 @@ Model::~Model(){
     inverse_matrix.clear();
 
     original_coef.clear();
-    non_basic_coef.clear();
+    basic_coef.clear();
 
     output_model.clear();
     output_model_mod.clear();
@@ -214,7 +214,7 @@ void Model::inverse_matrix_get(){
     }
 }
 
-void Model::non_basic_coef_get(){
+void Model::basic_coef_get(){
     std::vector<double> coef (size());
     for(int i = 0; i < tableau[0].size(); i++){
         if(tableau[0][i] == 0){
@@ -226,7 +226,7 @@ void Model::non_basic_coef_get(){
         }
     }
 
-    non_basic_coef = coef;
+    basic_coef = coef;
     //vec_print_dbl(non_basic_coef);
 }
 
@@ -253,12 +253,12 @@ void Model::solution_dual_get(std::vector<double> & solution_dual){
         solution_dual.clear();
         
     inverse_matrix_get();
-    non_basic_coef_get();
+    basic_coef_get();
     
     for(int i = 0; i < inverse_matrix.size(); i++){
         double sum = 0;
         for(int j = 0; j < inverse_matrix.size(); j++){
-            sum += non_basic_coef[j] * inverse_matrix[j][i]; 
+            sum += basic_coef[j] * inverse_matrix[j][i]; 
         }
 
         if(sum < DBL_EPSILON && sum > -DBL_EPSILON)
@@ -900,6 +900,35 @@ void Model::print(){
 
 void Model::print_mod(){
     std::cout << output_mod_get();
+}
+
+void Model::print_model(){
+    std::cout << output_model;
+}
+
+void Model::print_model_mod(){
+    std::cout << output_model_mod;
+
+}
+
+void Model::print_solution(){
+    std::cout << output_solution;
+
+}
+
+void Model::print_solution_mod(){
+
+    std::cout << output_solution_mod;
+}
+
+void Model::print_analysis(){
+    std::cout << output_analysis;
+
+}
+
+void Model::print_analysis_mod(){
+    std::cout << output_analysis_mod;
+
 }
 
 /* ======== FUNCS FROM OBJ_FUNC CLASS ========*/
