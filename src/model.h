@@ -15,7 +15,7 @@
 #define L_EQ 1 
 #define G_EQ -1 
 
-#define OUT_PRECISION 6
+#define OUT_PRECISION 5
 
 typedef std::vector<std::vector<double>> Table;
 typedef void (*solver_func)(Table & tableau);
@@ -29,29 +29,30 @@ public:
     class obj_func;
     class cstr;
 
-    void def(std::string model_type);
-    void func_add(obj_func func);
-    void cstr_add(cstr constraint);
-    Table tableau_get();
-    void tableau_print();
-    int n_var_get();
-    int size();
-    void analyse();   
-    void solve();
-    double obj_value_get();
-    void analyse_add(cstr cstr_new);    // analise
-    void analyse_reopt();     // analise
+    void def(std::string model_type);                       // defines the problem type
+    void func_add(obj_func func);                           // adds the OF
+    void cstr_add(cstr constraint);                         // adds a constraint
+    Table tableau_get();                                    // returns the tableau
+    void tableau_print();                                   // prints the tableau
+    int n_var_get();                                        // returns the n_o of variables
+    int size();                                             // returns the qnt of cstrts
+    void analyse();                                         // does a sensitivity analysis of the solution
+    void solve();                                           // solves the model
+    double obj_value_get();                                 // returns the OF of the solution
+    void analyse_add(cstr cstr_new);                        // add new cstrts to the analysis of a modified model
+    void analyse_reopt();                                   // analyses a modified model with new cstrts
 
     std::string output_get();
     std::string output_mod_get();
-    void print();
-    void print_mod();
-    void print_model();
-    void print_model_mod();
-    void print_solution();
-    void print_solution_mod();
-    void print_analysis();
-    void print_analysis_mod();
+    void print();                                           // prints all the data of the original model
+    void print_model();                                     // prints the original model info
+    void print_solution();                                  //  ""      ""      ""       solution
+    void print_analysis();                                  //  ""      ""      ""       analysis
+
+    void print_mod();                                       // prints all the data of the modified model
+    void print_model_mod();                                 // prints the modified model info
+    void print_solution_mod();                              //  ""      ""      ""       analysis
+    void print_analysis_mod();                              //  ""      ""      ""       solution
 
 private:
     int var_qnt;                                            // qnt of variables 
@@ -71,14 +72,12 @@ private:
     std::vector<cstr> cstr_vec_new;                         // new constraints
 
     alignas(alignof(Table)) Table tableau;
-    alignas(alignof(Table)) Table solution_tableau;                                 // final tableau of the original model
+    alignas(alignof(Table)) Table solution_tableau;         // final tableau of the original model
 
     std::vector<double> solution_primal;
     std::vector<double> solution_primal_mod;
     std::vector<double> solution_dual;
     std::vector<double> solution_dual_mod;
-
-    // infos recalculadas a cada analise
 
     std::vector<double> b_opt;                              // right hand of the final tableau
     std::vector<std::pair<double, double>> b_range;         //restrictions right hand
@@ -112,11 +111,10 @@ private:
     void output_generate();
     void output_mod_generate();
 
-    //void tableau_resize(std::vector<double> , double, int);   
 
     void b_opt_store();   
-    void b_range_calc(std::vector<std::pair<double, double>> & b_range);    // analise
-    void c_range_calc(std::vector<std::pair<double, double>> & c_range);    // analise
+    void b_range_calc(std::vector<std::pair<double, double>> & b_range);
+    void c_range_calc(std::vector<std::pair<double, double>> & c_range);    
     void tableau_resize(const cstr cstr_new);   
 };
 
