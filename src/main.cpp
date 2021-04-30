@@ -332,37 +332,6 @@ int main(){
             o_file.close();
         }
     }
-/*
-    Tableau tableau = 
-
-    {
-
-    {4, 12, 18, 0, 0, 0},
-    {-1, 0, -3, 1, 0, -3},
-    {0, -2, -2, 0, 1, -5}
-
-    };
-*/
-
-    //dual_simplex_solve(tableau);
-    //algo_def(tableau);
-    //tableau_print(tableau);
-
-    // generate the tableau
-    //Tableau tableau = model.tableau_get();
-
-    //simplex_solve(model.tableau);
-    //tableau_print(model.tableau);
-    //int M = 10;
-
-/*
-    tableau = 
-    {{-0.5*M + 0.4, -0.5*M + 0.5, 0, 0, 0, -6*M},
-    {0.3, 0.1, 1, 0, 0, 2.7},
-    {0.5, 0.5, 0, 1, 0, 6},
-    {-0.6, -0.4, 0, 0, 1, -6}};
-    */
-    
 
     return 0;
 }

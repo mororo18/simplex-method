@@ -69,8 +69,10 @@ void Model::def(std::string model_type){
     }else if(!model_type.compare("min")){
         type = model_type;
         type_id = 1;
-    }else
+    }else{
         std::cout << "Invalid constraint type" << std::endl; 
+        exit(0);
+    }
 
 } 
 
@@ -78,7 +80,7 @@ void Model::func_add(Model::obj_func func){
 
     if(func.size() != var_qnt){
         std::cout << "Invalid OF size" << std::endl;
-        return;
+        exit(0);
     }
 
     if(main_func != nullptr)
@@ -92,8 +94,8 @@ void Model::func_add(Model::obj_func func){
 void Model::cstr_add(Model::cstr constraint){
 
     if(constraint.coef_get().size() != var_qnt){
-        std::cout << "Invalid constraint variables" << std::endl;
-        return;
+        std::cout << "Invalid constraint's variables" << std::endl;
+        exit(0);
     }
         
     cstr_vec.push_back(constraint);
@@ -102,7 +104,7 @@ void Model::cstr_add(Model::cstr constraint){
 void Model::analyse_add(Model::cstr cstr_new){
 
     if(cstr_new.coef_get().size() != var_qnt){
-        std::cout << "Invalid constraint added to analyse" << std::endl;
+        std::cout << "Invalid constraint added to analysis" << std::endl;
         exit(0);
     }
 
@@ -127,7 +129,7 @@ void Model::vec_add_vec(std::vector<double> & vec_a, const std::vector<double> &
 
 void Model::vec_print_dbl(std::vector<double> vec){
     for(int i = 0; i < vec.size(); i++){
-        std::cout << vec[i] << " " ;//+= factor * vec_b[i]; 
+        std::cout << vec[i] << " " ; 
     }
 
     std::cout << std::endl;
@@ -236,8 +238,6 @@ void Model::basic_coef_get(){
 
     basic_coef.clear();
     basic_coef = coef;
-
-    //vec_print_dbl(basic_coef);
 }
 
 void Model::solution_primal_get(std::vector<double> & solution_primal){
@@ -265,9 +265,6 @@ void Model::solution_dual_get(std::vector<double> & solution_dual){
     inverse_matrix_store();
     basic_coef_get();
     
-    //std::cout << "basic_coef sz  " << basic_coef.size() << "\n";
-    //std::cout << "inverse_matrix sz  " << inverse_matrix.size() << "\n";
-
     for(int i = 0; i < inverse_matrix.size(); i++){
         double sum = 0;
         for(int j = 0; j < inverse_matrix.size(); j++){
@@ -316,9 +313,6 @@ void Model::b_range_calc(std::vector<std::pair<double, double>> & b_range){
                 upper_bound = value; 
 
             }else if(value > lower_bound){
-                if(col == 6)
-                    //std::cout << "vlaue " << value << "  lower bound" << std::endl;
-                    std::cout << "value " << value << " b_opt " <<  b_opt[row] << " coef  " << coef << std::endl;
                 lower_bound = value;
             }
 
@@ -340,11 +334,18 @@ void Model::c_range_calc(std::vector<std::pair<double, double>> & c_range){
         c_range.clear();
 
     for(int col = 0; col < var_qnt; col++){
+        // non basic
         if(tableau[0][col] > 0){
+            // the upper bound is the coef of x_n in the row 0
             std::pair<double, double> range = std::make_pair(-INFINITE, tableau[0][col]);
-            //std::cout << "var X_" << col << "  de " << -INFINITE << " a " << tableau[0][col] << std::endl;
             c_range.push_back(range);
+
+        // basic
         }else if(tableau[0][col] == 0){
+            // subtracts the row where the coef of x_n is 1 from thow row 0, 
+            // and with the new values defines the upper and the lower bounds
+            // (value >= 0) 
+
             int row_i;
 
             // identify the var row, where c_i_row == 1
@@ -362,7 +363,6 @@ void Model::c_range_calc(std::vector<std::pair<double, double>> & c_range){
                 if(tableau[0][col_i] == 0 || tableau[0][col_i] >= INFINITE -2)
                     continue;
 
-                // REVIRSAR POSTERIORMENTE
                 double coef = -1.0f * type_id * tableau[row_i][col_i];
                 double coef_inv = 1.0f / coef;
                 double value = -1.0f * tableau[0][col_i];
@@ -485,12 +485,7 @@ void Model::analyse_reopt(){
         tableau = solution_tableau;
 
     for(int i = 0; i < cstr_vec_new.size(); i++){
-        // TALVEZ O PROBLEMA AQUI
-        std::vector<double> coef = cstr_vec_new[i].coef_get();
-        double value = cstr_vec_new[i].value;
-        int id = cstr_vec_new[i].type_id;
         tableau_resize(cstr_vec_new[i]);
-        //tableau_resize(coef, value, id);
     }
 
     //tableau_print();
@@ -830,9 +825,6 @@ void Model::output_mod_generate(){
 
         }
 
-        //return;
-
-        // TALVEZ AQUI O PROBLEMA
         std::vector<cstr> cstr_vec_mod = cstr_vec;
         cstr_vec_mod.insert(cstr_vec_mod.end(), cstr_vec_new.begin(), cstr_vec_new.end());
         output.append("\n\t\t     > Right Hand Side <\n");
@@ -979,7 +971,7 @@ void Model::obj_func::var_add(char name[]){
     
     if(var_name.size() + 1 > var_qnt){
         std::cout << "Invalid OF size" << std::endl;
-        return;
+        exit(0);
     }
 
     std::string var_new (name);
@@ -991,7 +983,7 @@ void Model::obj_func::coef_add(double var_coef){
 
     if(coef.size() + 1 > var_qnt){
         std::cout << "Invalid OF size" << std::endl;
-        return;
+        exit(0);
     }
 
     coef.push_back(var_coef);
