@@ -6,8 +6,8 @@
 #include <sstream>
 #include <iomanip>
 
-#define BIG_M 999999
-#define INFINITE 999999
+#define BIG_M 99999
+#define INFINITE 99999
 
 #define MAX -1
 
@@ -15,7 +15,7 @@
 #define L_EQ 1 
 #define G_EQ -1 
 
-#define OUT_PRECISION 3
+#define OUT_PRECISION 6
 
 typedef std::vector<std::vector<double>> Table;
 typedef void (*solver_func)(Table & tableau);
@@ -70,8 +70,8 @@ private:
     std::vector<cstr> cstr_vec;
     std::vector<cstr> cstr_vec_new;                         // new constraints
 
-    Table tableau;
-    Table solution_tableau;                                 // final tableau of the original model
+    alignas(alignof(Table)) Table tableau;
+    alignas(alignof(Table)) Table solution_tableau;                                 // final tableau of the original model
 
     std::vector<double> solution_primal;
     std::vector<double> solution_primal_mod;
@@ -112,10 +112,12 @@ private:
     void output_generate();
     void output_mod_generate();
 
+    //void tableau_resize(std::vector<double> , double, int);   
+
     void b_opt_store();   
     void b_range_calc(std::vector<std::pair<double, double>> & b_range);    // analise
     void c_range_calc(std::vector<std::pair<double, double>> & c_range);    // analise
-    void tableau_resize(cstr cstr_new);   
+    void tableau_resize(const cstr cstr_new);   
 };
 
 class Model::obj_func {
@@ -145,11 +147,15 @@ public:
    void coef_add(double var_coef);
    void value_add(double value_cstr);
    void coef_print();
+   std::vector<double> coef_get();
 
    cstr_t type; 
    int type_id;
-   std::vector<double> exp_coef;
    double value;
+
+private:
+   std::vector<double> exp_coef;
+
 
 };
 

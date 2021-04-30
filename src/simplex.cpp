@@ -43,7 +43,7 @@ void pivot_column_clean(Tableau & tableau, int row, int column){
 }
 
 int simplex_pivot_column_identify(std::vector<double> obj_func){
-    double min = 0;
+    double min = 0.0f;
     int min_i = -1;
     for(int i = 0; i < obj_func.size() - 1; i++){
         if(obj_func[i] < min){

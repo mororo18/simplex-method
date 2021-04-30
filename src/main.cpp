@@ -10,6 +10,7 @@
 int main(){
 
     /* =========== MODEL 01 ============*/
+    
 
     {
         const int n_var = 2;
@@ -110,7 +111,6 @@ int main(){
         
         // init with the solver and qnt of variables
         Model model(simplex(), n_var);
-
         // def the problem type
         model.def("max");
 
@@ -192,8 +192,10 @@ int main(){
         model.analyse();
         //model.tableau_print();
 
+        // PROBLEMA DE ALOCACAO AQUI
         model.analyse_reopt();
-        //model.print();
+
+        model.print();
         //model.print_mod();
         //model.tableau_print();
 
@@ -213,6 +215,120 @@ int main(){
         o_file.open(f_name_mod, std::ios::in );
         if(file.is_open()){
             o_file << model.output_mod_get();
+            o_file.close();
+        }
+    }
+
+    /* =========== MODEL n ============*/
+
+    {
+        const int n_var = 6;
+
+        // data
+        std::vector<int> OF_coef = { 4, 8, 6, 4, 3, 9}; 
+        std::vector<std::vector<int>> EQ_m = {
+            {1, 1, 0, 0, 0, 0},
+            {0, 0, 1, 1, 0, 0},
+            {0, 0, 0, 0, 1, 1}
+        };
+
+        std::vector<int> EQ_v = {500, 1200, 1800};
+
+        std::vector<std::vector<int>> LEQ_m = {
+            {1, 0, 1, 0, 1, 0},
+            {0, 1, 0, 1, 0, 1},
+            {1, 0, 0, 0, 0, 0},
+            {0, 1, 0, 0, 0, 0},
+            {0, 0, 1, 0, 0, 0},
+            {0, 0, 0, 1, 0, 0},
+            {0, 0, 0, 0, 1, 0},
+            {0, 0, 0, 0, 0, 1},
+        };
+
+        std::vector<int> LEQ_v = {2000, 2000, 300, 300, 720, 720, 1080, 1080};
+
+        std::vector<std::vector<int>> GEQ_m = {
+            {1, 0, 1, 0, 1, 0},
+            {0, 1, 0, 1, 0, 1}
+        };
+
+        std::vector<int> GEQ_v = {1400, 1400};
+        // init with the solver and qnt of variables
+        Model model(simplex(), n_var);
+
+        // def the problem type
+        model.def("max");
+
+        /* =========== OBJECTIVE FUNCTION ============*/
+
+        // declares the O.F. 
+        Model::obj_func func(n_var);
+
+        char buf[100];
+        for(int i = 0; i < OF_coef.size(); i++){
+
+            sprintf(buf, "X_%d", i+1);
+
+            // add the coeficients
+            func.coef_add(OF_coef[i]);
+            // add the variables names
+            func.var_add(buf);
+        }
+
+        // add the F.O. to the model
+        model.func_add(func);
+
+        /* =========== CONSTRAINTS ============*/
+
+        for(int i = 0; i < EQ_m.size(); i++){
+            Model::cstr cstr;
+            cstr.type_def("eq");
+            cstr.value_add(EQ_v[i]);
+            for(int j = 0; j < EQ_m[0].size(); j++){
+                cstr.coef_add(EQ_m[i][j]);
+            }
+            // add the cstrs to the model
+            model.cstr_add(cstr);
+
+        }
+
+        for(int i = 0; i < LEQ_m.size(); i++){
+            Model::cstr cstr;
+            cstr.type_def("leq");
+            cstr.value_add(LEQ_v[i]);
+            for(int j = 0; j < LEQ_m[0].size(); j++){
+                cstr.coef_add(LEQ_m[i][j]);
+            }
+            model.cstr_add(cstr);
+        }
+
+        for(int i = 0; i < GEQ_m.size(); i++){
+            Model::cstr cstr;
+            cstr.type_def("geq");
+            cstr.value_add(GEQ_v[i]);
+            for(int j = 0; j < GEQ_m[0].size(); j++){
+                cstr.coef_add(GEQ_m[i][j]);
+            }
+            model.cstr_add(cstr);
+        }
+
+        model.print_model();
+
+        model.solve();
+        model.print_solution();
+
+        model.analyse();
+        model.print_analysis();
+
+        //model.print();
+
+        const char * f_name = "results/example3.txt";
+        std::ofstream file {f_name};
+
+        std::ofstream o_file;
+        o_file.open(f_name, std::ios::in );
+        if(file.is_open()){
+            o_file << model.output_get();
             o_file.close();
         }
     }

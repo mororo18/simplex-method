@@ -27,7 +27,7 @@
    > Y_1 = 0;
    > Y_2 = 0;
    > Y_3 = 0;
-   > Y_4 = 1.67;
+   > Y_4 = 1.66667;
 
 
 [@] MOD SENSITIVITY ANALYSIS:
@@ -36,7 +36,7 @@
 
 		 > OBJ Coefficient Ranges <
    Variables	Crnt Coef	Alwb Inc.	Alwb Dec.
-   > X_1	3		0.333		INFINITY
+   > X_1	3		0.333333		INFINITY
    > X_2	5		INFINITY	0.5
 
 		     > Right Hand Side <

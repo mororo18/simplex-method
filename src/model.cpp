@@ -12,6 +12,9 @@ Model::Model(solver_func func, int qnt){
 }
 
 Model::~Model(){
+
+    type.clear();
+
     solution_primal.clear();
     solution_dual.clear();
 
@@ -20,7 +23,13 @@ Model::~Model(){
     cstr_vec.clear();
     cstr_vec_new.clear();
 
+    for(int i = 0; i < tableau.size(); i++){
+        tableau[i].clear();
+    }
     tableau.clear();
+    for(int i = 0; i < solution_tableau.size(); i++){
+        solution_tableau[i].clear();
+    }
     solution_tableau.clear();
 
     solution_primal.clear();
@@ -82,7 +91,7 @@ void Model::func_add(Model::obj_func func){
 
 void Model::cstr_add(Model::cstr constraint){
 
-    if(constraint.exp_coef.size() != var_qnt){
+    if(constraint.coef_get().size() != var_qnt){
         std::cout << "Invalid constraint variables" << std::endl;
         return;
     }
@@ -90,9 +99,9 @@ void Model::cstr_add(Model::cstr constraint){
     cstr_vec.push_back(constraint);
 }
 
-void Model::analyse_add(cstr cstr_new){
+void Model::analyse_add(Model::cstr cstr_new){
 
-    if(cstr_new.exp_coef.size() != var_qnt){
+    if(cstr_new.coef_get().size() != var_qnt){
         std::cout << "Invalid constraint added to analyse" << std::endl;
         exit(0);
     }
@@ -162,7 +171,7 @@ void Model::tableau_generate(){
         vec_multiply_scalar(tableau[0], MAX);
 
     for(int i = 0; i < cstr_vec.size(); i++){
-        std::vector<double> tableau_row = cstr_vec[i].exp_coef;
+        std::vector<double> tableau_row = cstr_vec[i].coef_get();
 
         // slack vars cols
         for(int j = 0; j < slack_cols; j++){
@@ -215,19 +224,20 @@ void Model::inverse_matrix_store(){
 }
 
 void Model::basic_coef_get(){
-    std::vector<double> coef (size());
-    for(int i = 0; i < tableau[0].size(); i++){
-        if(tableau[0][i] == 0){
-            for(int j = 1; j < tableau.size(); j++){
-                if(tableau[j][i] == 1){
-                    coef[j-1] = -1 * type_id * original_coef[i];
-                }
+    std::vector<double> coef (tableau.size() - 1);
+    for(int col = 0; col < tableau[0].size(); col++){
+        if(tableau[0][col] == 0){
+            for(int row = 1; row < tableau.size(); row++){
+                if(tableau[row][col] == 1)
+                    coef[row-1] = -1 * type_id * original_coef[col];
             }
         }
     }
 
+    basic_coef.clear();
     basic_coef = coef;
-    //vec_print_dbl(non_basic_coef);
+
+    //vec_print_dbl(basic_coef);
 }
 
 void Model::solution_primal_get(std::vector<double> & solution_primal){
@@ -255,6 +265,9 @@ void Model::solution_dual_get(std::vector<double> & solution_dual){
     inverse_matrix_store();
     basic_coef_get();
     
+    //std::cout << "basic_coef sz  " << basic_coef.size() << "\n";
+    //std::cout << "inverse_matrix sz  " << inverse_matrix.size() << "\n";
+
     for(int i = 0; i < inverse_matrix.size(); i++){
         double sum = 0;
         for(int j = 0; j < inverse_matrix.size(); j++){
@@ -284,14 +297,18 @@ void Model::b_range_calc(std::vector<std::pair<double, double>> & b_range){
     if(!b_range.empty())
         b_range.clear();
 
+    //std::cout << "inve size " << inverse_matrix.size() << std::endl;
     for(int col = 0; col < inverse_matrix[0].size(); col++){
         double upper_bound = INFINITE; 
         double lower_bound = -INFINITE;
 
+
+        //if(col == 6)
+            //vec_print_dbl(b_opt);
         for(int row = 0; row < inverse_matrix.size(); row++){
-            double coef = inverse_matrix[row][col];
+            double coef =  inverse_matrix[row][col];
             double coef_inv = 1.0f / coef;
-            double value = -1 * b_opt[row];
+            double value = -1.0 * b_opt[row];
 
             value = value * coef_inv;
 
@@ -299,6 +316,9 @@ void Model::b_range_calc(std::vector<std::pair<double, double>> & b_range){
                 upper_bound = value; 
 
             }else if(value > lower_bound){
+                if(col == 6)
+                    //std::cout << "vlaue " << value << "  lower bound" << std::endl;
+                    std::cout << "value " << value << " b_opt " <<  b_opt[row] << " coef  " << coef << std::endl;
                 lower_bound = value;
             }
 
@@ -383,18 +403,22 @@ void Model::analyse(){
     output_generate();
 }
 
-void Model::tableau_resize(cstr cstr_new){
+//void Model::tableau_resize(std::vector<double> row_vec, double value, int id ){
+void Model::tableau_resize(Model::cstr cstr_new){
 
     int row_size = tableau[0].size();
     // add new row
-    std::vector<double> row_new = cstr_new.exp_coef;
+    //std::vector<double> row_new = row_vec;
+    std::vector<double> row_new = cstr_new.coef_get();
 
+    //if(id == G_EQ){
     if(cstr_new.type_id == G_EQ){
         for(int row = var_qnt; row < tableau[0].size(); row++)
             row_new.push_back(0); 
         row_new.push_back(-1); 
         row_new.push_back(0); 
 
+        //row_new.push_back(value);
         row_new.push_back(cstr_new.value);
 
         int col_i = row_size - 1;
@@ -407,8 +431,8 @@ void Model::tableau_resize(cstr cstr_new){
     }else { 
         for(int row = var_qnt; row < tableau[0].size(); row++)
             row_new.push_back(0); 
-        //row_new.push_back(0); 
 
+        //row_new.push_back(value);
         row_new.push_back(cstr_new.value);
 
         int col_i = row_size - 1;
@@ -420,6 +444,7 @@ void Model::tableau_resize(cstr cstr_new){
     // update I_index vec
     I_index.push_back(tableau[0].size() - 2);
 
+    //if(id == G_EQ || id == EQ)
     if(cstr_new.type_id == G_EQ || cstr_new.type_id == EQ)
         vec_add_vec(tableau[0], row_new, -BIG_M);
 
@@ -447,8 +472,6 @@ void Model::tableau_resize(cstr cstr_new){
     }
 
     tableau.push_back(row_new);
-
-
 }
 
 void Model::analyse_reopt(){
@@ -462,7 +485,12 @@ void Model::analyse_reopt(){
         tableau = solution_tableau;
 
     for(int i = 0; i < cstr_vec_new.size(); i++){
+        // TALVEZ O PROBLEMA AQUI
+        std::vector<double> coef = cstr_vec_new[i].coef_get();
+        double value = cstr_vec_new[i].value;
+        int id = cstr_vec_new[i].type_id;
         tableau_resize(cstr_vec_new[i]);
+        //tableau_resize(coef, value, id);
     }
 
     //tableau_print();
@@ -499,7 +527,7 @@ void Model::output_generate(){
     output.append("\n [s.t.] Constraints :\n\n");
 
     for(int i = 0; i < cstr_vec.size(); i++){
-        std::vector<double> coef_vec = cstr_vec[i].exp_coef;
+        std::vector<double> coef_vec = cstr_vec[i].coef_get();
         char cstr_n[20];
         sprintf(cstr_n, "    (%d) ", i);
         output.append(cstr_n);
@@ -663,6 +691,7 @@ void Model::output_generate(){
         }
 
         output_analysis = output;
+        output.clear();
     }
 }
 
@@ -679,7 +708,7 @@ void Model::output_mod_generate(){
 
         // append the new cstrs to the Model output string
         for(int i = 0; i < cstr_vec_new.size(); i++){
-            std::vector<double> coef_vec = cstr_vec_new[i].exp_coef;
+            std::vector<double> coef_vec = cstr_vec_new[i].coef_get();
             char cstr_n[20];
             sprintf(cstr_n, "    (%d) ", count++);
             output.append(cstr_n);
@@ -800,6 +829,10 @@ void Model::output_mod_generate(){
 
 
         }
+
+        //return;
+
+        // TALVEZ AQUI O PROBLEMA
         std::vector<cstr> cstr_vec_mod = cstr_vec;
         cstr_vec_mod.insert(cstr_vec_mod.end(), cstr_vec_new.begin(), cstr_vec_new.end());
         output.append("\n\t\t     > Right Hand Side <\n");
@@ -848,6 +881,7 @@ void Model::output_mod_generate(){
 void Model::solve(){
     tableau_generate();
     solver(tableau);
+    tableau_print();
     solution_tableau = tableau;
     
     obj_value = obj_value_get();
@@ -870,14 +904,12 @@ Table Model::tableau_get(){
 }
 
 void Model::tableau_print(){
-    std::cout << "aqui\n";
     for(int i = 0; i < tableau.size(); i++){
         for(int j = 0; j < tableau[i].size(); j++){
             std::cout << tableau[i][j] << " ";
         }
         std::cout << std::endl;
     }
-    std::cout << "aqui\n";
 }
 
 int Model::n_var_get(){
@@ -1064,4 +1096,8 @@ void Model::cstr::coef_print(){
     for(int i = 0; i < exp_coef.size(); i++)
         std::cout << exp_coef[i] << " ";
     std::cout << std::endl;
+}
+
+std::vector<double> Model::cstr::coef_get(){
+    return exp_coef;
 }
